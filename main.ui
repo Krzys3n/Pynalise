@@ -32,7 +32,7 @@
      <rect>
       <x>0</x>
       <y>320</y>
-      <width>1061</width>
+      <width>531</width>
       <height>231</height>
      </rect>
     </property>
@@ -90,6 +90,19 @@
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QTextBrowser" name="textBrowserInfo">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>320</y>
+      <width>531</width>
+      <height>231</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

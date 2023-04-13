@@ -93,7 +93,15 @@ def calculate_mean(df, column, text_browser):
     except Exception as e:
         text_browser.append(f"Error occurred: {str(e)}")
 
-Form, Window = uic.loadUiType("C:/Users/Krzyś/PycharmProjects/Zoo_Project/main.ui")
+
+
+
+
+
+
+
+
+Form, Window = uic.loadUiType("C:/Users/Krzyś/PycharmProjects/Zoo_Proj_Inf/main.ui")
 
 app = QApplication([])
 window = Window()
@@ -135,9 +143,37 @@ form.pushButtonMean.clicked.connect(lambda: calculate_mean(df, table_view.curren
 form.pushButtonStd.clicked.connect(lambda: calculate_std(df, table_view.currentIndex().column(), form.textBrowser))
 form.pushButtonMedian.clicked.connect(lambda: calculate_median(df, table_view.currentIndex().column(), form.textBrowser))
 
-column_text = []
-header = table_view.horizontalHeader()
+# wyświetlanie informacji o danej kolumnie
+def switch_dictionary(column_name):
+    switcher = {
+        "animal name": "The name of the animal",
+        "hair": "Whether the animal has hair or not",
+        "feathers": "Whether the animal has feathers or not",
+        "eggs": "Whether the animal lays eggs or not",
+        "milk": "Whether the animal produces milk or not",
+        "airborne": "Whether the animal can fly or not",
+        "aquatic": "Whether the animal lives in water or not",
+        "predator": "Whether the animal is a predator or not",
+        "toothed": "Whether the animal has teeth or not",
+        "backbone": "Whether the animal has a backbone or not",
+        "breathes": "Whether the animal breathes air or not",
+        "venomous": "Whether the animal is venomous or not",
+        "fins": "Whether the animal has fins or not",
+        "legs": "Number of legs that the animal has",
+        "tail": "Whether the animal has a tail or not",
+        "domestic": "Whether the animal is domesticated or not",
+        "catsize": "Whether the animal is cat-sized or not",
+        "type": "Type of animal (mammal, bird, reptile, etc.)"
+    }
+    return switcher.get(column_name, "Invalid column name")
 
+
+def display_column_info(index):
+    column_name = table_view.model().headerData(index.column(), Qt.Orientation.Horizontal)
+    form.textBrowserInfo.setText(switch_dictionary(column_name))
+
+table_view.setMouseTracking(True)
+table_view.entered.connect(display_column_info)
 
 window.show()
 app.exec()
