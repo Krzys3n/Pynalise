@@ -1,11 +1,10 @@
+from PyQt5.uic.properties import QtCore
 from PyQt6 import uic
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtWidgets import QApplication, QTableView
 import pandas as pd
-
-
-
+import matplotlib.pyplot as plt
 
 
 def calculate_minimum(df, column, text_browser):
@@ -99,7 +98,7 @@ def calculate_mean(df, column, text_browser):
 
 
 
-
+# Podłączanie GUI poprzez plik ui stworzony QT designerze
 
 Form, Window = uic.loadUiType("C:/Users/Krzyś/PycharmProjects/Zoo_Proj_Inf/main.ui")
 
@@ -107,6 +106,7 @@ app = QApplication([])
 window = Window()
 form = Form()
 form.setupUi(window)
+window.setFixedSize(1060, 760)
 
 
 # wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas
@@ -126,8 +126,11 @@ for row in range(df.shape[0]):
 table_view.setModel(model)
 
 # Ustawianie nazw kolumn
-model.setHorizontalHeaderLabels(["animal name", "hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
-          "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"])
+labels = ["animal name", "hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
+          "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
+labels_no_zero_column = [ "hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
+          "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
+model.setHorizontalHeaderLabels(labels)
 
 
 # dodanie tabeli do layoutuu
@@ -175,6 +178,71 @@ def display_column_info(index):
 table_view.setMouseTracking(True)
 table_view.entered.connect(display_column_info)
 
+
+# Comboboxy pozwalające na wybór atrybutów danych do porównania
+
+form.comboBoxAtrybut1.addItems(labels_no_zero_column)
+form.comboBoxAtrybut2.addItems(labels_no_zero_column)
+
+# Tworzenie wykresu
+
+def generate_plot(data, attribute_1, attribute_2):
+    model = form.tableView.model()
+    # pobierz indeks wybranej kolumny z comboBoxAtrybut1
+    column1_index = form.comboBoxAtrybut1.currentIndex()+1
+    # pobierz indeks wybranej kolumny z comboBoxAtrybut2
+    column2_index = form.comboBoxAtrybut2.currentIndex()+1
+    # pobierz dane z wybranej kolumny 1
+    column1_data = [model.data(model.index(row, column1_index)) for row in range(model.rowCount())]
+    # pobierz dane z wybranej kolumny 2
+    column2_data = [model.data(model.index(row, column2_index)) for row in range(model.rowCount())]
+    # utwórz nowy obiekt DataFrame z pobranych danych
+    data = pd.DataFrame(
+        {form.comboBoxAtrybut1.currentText(): column1_data, form.comboBoxAtrybut2.currentText(): column2_data})
+    data = data.apply(pd.to_numeric)
+    counts = data.apply(pd.Series.value_counts).fillna(0)
+    counts.plot(kind='bar')
+
+    plt.xlabel('Atrybut')
+    plt.ylabel('Suma')
+    text1 = attribute_2
+    text2 = attribute_1
+    if attribute_1 != attribute_2:
+        plt.title('Porównanie sumy '+attribute_1+' oraz '+attribute_2)
+    else:
+        plt.title('Suma ' + attribute_1)
+    plt.show()
+
+
+
+form.pushButtonPorownaj.clicked.connect(lambda:generate_plot(df,form.comboBoxAtrybut1.currentText(), form.comboBoxAtrybut2.currentText() ))
+
+form.comboBoxAtrybut1.setCurrentIndex(3)
+form.comboBoxAtrybut2.setCurrentIndex(0)
+
+def calculate_coorelation():
+    model = form.tableView.model()
+    # pobierz indeks wybranej kolumny z comboBoxAtrybut1
+    column1_index = form.comboBoxAtrybut1.currentIndex()+1
+    # pobierz indeks wybranej kolumny z comboBoxAtrybut2
+    column2_index = form.comboBoxAtrybut2.currentIndex()+1
+    # pobierz dane z wybranej kolumny 1
+    column1_data = [model.data(model.index(row, column1_index)) for row in range(model.rowCount())]
+    # pobierz dane z wybranej kolumny 2
+    column2_data = [model.data(model.index(row, column2_index)) for row in range(model.rowCount())]
+    # utwórz nowy obiekt DataFrame z pobranych danych
+    data = pd.DataFrame(
+        {form.comboBoxAtrybut1.currentText(): column1_data, form.comboBoxAtrybut2.currentText(): column2_data})
+    data = data.apply(pd.to_numeric)
+    correlation_matrix = data[[form.comboBoxAtrybut1.currentText(), form.comboBoxAtrybut2.currentText()]].corr()
+    correlation_coefficient = correlation_matrix.iloc[0, 1]
+    form.textBrowser.append("Koorelacja między tymi atrybutami wynosi: " + str(correlation_coefficient))
+
+form.pushButtonKoorelacja.clicked.connect(lambda:calculate_coorelation() )
+##########################
+
+
+# włączanie okna aplikacji
 window.show()
 app.exec()
 
