@@ -7,7 +7,8 @@ from PyQt5.uic.properties import QtCore
 from PyQt6 import uic
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import QApplication, QTableView, QFileDialog, QMessageBox
+from PyQt6.QtWidgets import QApplication, QTableView, QFileDialog, QMessageBox, QDialog, QPushButton, QVBoxLayout, \
+    QLineEdit
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -177,6 +178,8 @@ form.pushButtonClear.clicked.connect(lambda: form.textBrowser.clear())
 form.pushButtonMean.clicked.connect(lambda: calculate_mean(df, table_view.currentIndex().column(), form.textBrowser))
 form.pushButtonStd.clicked.connect(lambda: calculate_std(df, table_view.currentIndex().column(), form.textBrowser))
 form.pushButtonMedian.clicked.connect(lambda: calculate_median(df, table_view.currentIndex().column(), form.textBrowser))
+form.pushButtonDystrybucja.clicked.connect(lambda:distribution())
+form.pushButtonKoorelacja.clicked.connect(lambda:calculate_coorelation() )
 
 # wyświetlanie informacji o danej kolumnie
 def switch_dictionary(column_name):
@@ -280,11 +283,14 @@ def calculate_coorelation():
     plt.show()
 
 
-form.pushButtonKoorelacja.clicked.connect(lambda:calculate_coorelation() )
+
 ##########################
 
 ##Obsługiwanie paska menu
 def wczytaj_plik_csv():
+    global table_view
+    global df
+    global df_with_labels
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Wczytywanie pliku CSV")
     msg_box.setText("Czy chcesz wczytać plik z nazwami kolumn?")
@@ -306,29 +312,26 @@ def wczytaj_plik_csv():
     else:
         return
 
-    filename, _ = QFileDialog.getOpenFileName(None, "Wybierz plik CSV lub DATA", "",
+    current_dir = os.getcwd()
+    filename, _ = QFileDialog.getOpenFileName(None, "Wybierz plik CSV lub DATA", current_dir,
                                               "All files (*);;Pliki CSV (*.csv);;Pliki DATA (*.data)")
-
     if not filename:
         # Wyjście z funkcji, jeśli nie został wybrany plik
         return
 
-    global table_view
-    global df
+
 
 
 
 
     # Wczytaj dane z pliku CSV do obiektu DataFrame z biblioteki Pandas
     df = pd.read_csv(filename, header = header)
-    print(df)
     df_with_labels = df.copy()
     # Wyświetl dane za pomocą funkcji print
 
 
     model = QStandardItemModel(df.shape[0], df.shape[1])
     headers = list(df.columns)
-    print(headers)
     if reply == 16384:
         model.setHorizontalHeaderLabels(headers)
 
@@ -379,20 +382,55 @@ def zapisz_plikCSV():
     else:
         return
 
-
-    filename, _ = QFileDialog.getSaveFileName(None, "Zapisz plik CSV", "", "Pliki CSV (*.csv)")
+    current_dir = os.getcwd()
+    filename, _ = QFileDialog.getSaveFileName(None, "Zapisz plik CSV", current_dir, "Pliki CSV (*.csv)")
 
     if filename:
         df_with_labels.to_csv(filename, index=False, header=header)
+def reczne_wpisywanie_naglowkow():
+    global labels
+    global table_view
+    global df
+    global df_with_labels
+    labels = []
+    for i in df.columns:
+        dialog = QDialog()
+        dialog.setWindowTitle("Nazwa nagłówka "+ str(i))
+
+        dialog.header_field = QLineEdit()
+
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(dialog.accept)
+
+        layout = QVBoxLayout()
+        layout.addWidget(dialog.header_field)
+        layout.addWidget(ok_button)
+        dialog.setLayout(layout)
+
+        if dialog.exec() == 1:
+            label = dialog.header_field.text()
+            labels.append(label)
+    model = QStandardItemModel(df.shape[0], df.shape[1])
+    model.setHorizontalHeaderLabels(labels)
+
+    for row in range(df.shape[0]):
+        for column in range(df.shape[1]):
+            item = QStandardItem(str(df.iloc[row, column]))
+            model.setItem(row, column, item)
+
+    table_view.setModel(model)
+
+    df_with_labels.columns = labels
+    print(df_with_labels.columns)
 
 def funkcja():
-    distribution()
+    print (labels)
 
-
+# obsługa paska menu
 form.actionWczytaj_z_CSV.triggered.connect(wczytaj_plik_csv)
 form.actionZapisz_do_CSV.triggered.connect(zapisz_plikCSV)
 form.actionfunkcja.triggered.connect(funkcja)
-
+form.actionWprowadzNagl.triggered.connect(reczne_wpisywanie_naglowkow)
 
 def distribution():
     counts = df[table_view.currentIndex().column()].value_counts()
@@ -400,6 +438,7 @@ def distribution():
     plt.axis('equal')
     plt.title('Distribution of ' + df_with_labels.columns[table_view.currentIndex().column()])
     plt.show()
+
 
 
 

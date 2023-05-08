@@ -157,6 +157,19 @@ p, li { white-space: pre-wrap; }
      <string>Oblicz Koorelację</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="pushButtonDystrybucja">
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>570</y>
+      <width>131</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Wykres Dystrybucji</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -173,6 +186,7 @@ p, li { white-space: pre-wrap; }
     </property>
     <addaction name="actionWczytaj_z_CSV"/>
     <addaction name="actionZapisz_do_CSV"/>
+    <addaction name="actionWprowadzNagl"/>
     <addaction name="actionfunkcja"/>
    </widget>
    <addaction name="menuMenu"/>
@@ -191,6 +205,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionfunkcja">
    <property name="text">
     <string>funkcja</string>
+   </property>
+  </action>
+  <action name="actionWprowadzNagl">
+   <property name="text">
+    <string>Wprowadź nagłówki ręcznie</string>
    </property>
   </action>
  </widget>
