@@ -167,8 +167,32 @@ p, li { white-space: pre-wrap; }
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuMenu">
+    <property name="title">
+     <string>Plik</string>
+    </property>
+    <addaction name="actionWczytaj_z_CSV"/>
+    <addaction name="actionZapisz_do_CSV"/>
+    <addaction name="actionfunkcja"/>
+   </widget>
+   <addaction name="menuMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionWczytaj_z_CSV">
+   <property name="text">
+    <string>Wczytaj z CSV</string>
+   </property>
+  </action>
+  <action name="actionZapisz_do_CSV">
+   <property name="text">
+    <string>Zapisz do CSV</string>
+   </property>
+  </action>
+  <action name="actionfunkcja">
+   <property name="text">
+    <string>funkcja</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

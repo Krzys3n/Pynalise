@@ -1,14 +1,36 @@
+import sys
+
+import numpy as np
+import seaborn as sns
 from PyQt5.uic.properties import QtCore
 from PyQt6 import uic
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
-from PyQt6.QtWidgets import QApplication, QTableView
+from PyQt6.QtWidgets import QApplication, QTableView, QFileDialog, QMessageBox
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def calculate_minimum(df, column, text_browser):
+# def calculate_minimum(df, column, text_browser):
+#     try:
+#         # Oblicz minimum z wybranej kolumny
+#         minimum = df[column].min()
+#
+#         # Konwertuj wartość na string
+#         minimum_str = str(minimum)
+#
+#         # Pobierz tekst nagłówka kolumny z QTableView
+#         header_text ="" #table_view.model().headerData(column, Qt.Orientation.Horizontal)
+#
+#         # Wyświetl wartość w QTextBrowser
+#         text_browser.append(f"Minimum from column {header_text} is: {minimum_str}")
+#     except Exception as e:
+#         text_browser.append(f"Error occurred: {str(e)}")
+
+def calculate_minimum(column, text_browser):
     try:
+
+
         # Oblicz minimum z wybranej kolumny
         minimum = df[column].min()
 
@@ -16,13 +38,12 @@ def calculate_minimum(df, column, text_browser):
         minimum_str = str(minimum)
 
         # Pobierz tekst nagłówka kolumny z QTableView
-        header_text = table_view.model().headerData(column, Qt.Orientation.Horizontal)
+        header_text =table_view.model().headerData(column, Qt.Orientation.Horizontal)
 
         # Wyświetl wartość w QTextBrowser
         text_browser.append(f"Minimum from column {header_text} is: {minimum_str}")
     except Exception as e:
         text_browser.append(f"Error occurred: {str(e)}")
-
 
 def calculate_maximum(df, column, text_browser):
     try:
@@ -111,7 +132,8 @@ window.setFixedSize(1060, 760)
 
 # wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas
 df = pd.read_csv('zoo.data', header=None)
-
+df_with_labels = pd.DataFrame
+df_with_labels = df.copy()
 # utworzenie obiektu QTableView
 table_view = QTableView()
 
@@ -131,7 +153,13 @@ labels = ["animal name", "hair", "feathers", "eggs", "milk", "airborne", "aquati
 labels_no_zero_column = [ "hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
           "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
 model.setHorizontalHeaderLabels(labels)
+df_with_labels.columns = labels
+print(df_with_labels.columns)
+# Liczba kolumn minus 1
+x = len(df.columns) - 1
 
+# Ustawienie nazw kolumn na liczby od 0 do x
+df.columns = list(range(x + 1))
 
 # dodanie tabeli do layoutuu
 table_view = form.tableView
@@ -139,7 +167,7 @@ table_view.setModel(model)
 
 
 # przyciski:
-form.pushButtonMinimum.clicked.connect(lambda: calculate_minimum(df, table_view.currentIndex().column(), form.textBrowser))
+form.pushButtonMinimum.clicked.connect(lambda: calculate_minimum(table_view.currentIndex().column(), form.textBrowser))
 form.pushButtonMaximum.clicked.connect(lambda: calculate_maximum(df, table_view.currentIndex().column(), form.textBrowser))
 form.pushButtonClear.clicked.connect(lambda: form.textBrowser.clear())
 form.pushButtonMean.clicked.connect(lambda: calculate_mean(df, table_view.currentIndex().column(), form.textBrowser))
@@ -168,7 +196,7 @@ def switch_dictionary(column_name):
         "catsize": "Whether the animal is cat-sized or not",
         "type": "Type of animal (mammal, bird, reptile, etc.)"
     }
-    return switcher.get(column_name, "Invalid column name")
+    return switcher.get(column_name, "No info about Column")
 
 
 def display_column_info(index):
@@ -186,7 +214,7 @@ form.comboBoxAtrybut2.addItems(labels_no_zero_column)
 
 # Tworzenie wykresu
 
-def generate_plot(data, attribute_1, attribute_2):
+def generate_plot(attribute_1, attribute_2):
     model = form.tableView.model()
     # pobierz indeks wybranej kolumny z comboBoxAtrybut1
     column1_index = form.comboBoxAtrybut1.currentIndex()+1
@@ -215,13 +243,13 @@ def generate_plot(data, attribute_1, attribute_2):
 
 
 
-form.pushButtonPorownaj.clicked.connect(lambda:generate_plot(df,form.comboBoxAtrybut1.currentText(), form.comboBoxAtrybut2.currentText() ))
+form.pushButtonPorownaj.clicked.connect(lambda:generate_plot(form.comboBoxAtrybut1.currentText(), form.comboBoxAtrybut2.currentText() ))
 
 form.comboBoxAtrybut1.setCurrentIndex(3)
 form.comboBoxAtrybut2.setCurrentIndex(0)
 
 def calculate_coorelation():
-    model = form.tableView.model()
+    model = table_view.model()
     # pobierz indeks wybranej kolumny z comboBoxAtrybut1
     column1_index = form.comboBoxAtrybut1.currentIndex()+1
     # pobierz indeks wybranej kolumny z comboBoxAtrybut2
@@ -238,8 +266,109 @@ def calculate_coorelation():
     correlation_coefficient = correlation_matrix.iloc[0, 1]
     form.textBrowser.append("Koorelacja między tymi atrybutami wynosi: " + str(correlation_coefficient))
 
+    # Create a heatmap
+    sns.heatmap(correlation_matrix)
+
+    # Add title
+    plt.title('Correlation Heatmap')
+
+    # Display the plot
+    plt.show()
+
+
 form.pushButtonKoorelacja.clicked.connect(lambda:calculate_coorelation() )
 ##########################
+
+##Obsługiwanie paska menu
+def wczytaj_plik_csv():
+    filename, _ = QFileDialog.getOpenFileName(None, "Wybierz plik CSV lub DATA", "",
+                                              "All files (*);;Pliki CSV (*.csv);;Pliki DATA (*.data)")
+
+    if not filename:
+        # Wyjście z funkcji, jeśli nie został wybrany plik
+        return
+
+    global table_view
+    global df
+    # Wczytaj dane z pliku CSV do obiektu DataFrame z biblioteki Pandas
+    df = pd.read_csv(filename)
+    df2 = df.copy()
+    # Wyświetl dane za pomocą funkcji print
+
+
+    model = QStandardItemModel(df.shape[0], df.shape[1])
+    headers = list(df.columns)
+    model.setHorizontalHeaderLabels(headers)
+
+
+
+    for row in range(df.shape[0]):
+        for column in range(df.shape[1]):
+            item = QStandardItem(str(df.iloc[row, column]))
+            model.setItem(row, column, item)
+
+    table_view.setModel(model)
+
+    #wczytywanie nazw kolumn do comboboxów
+    column_names = df.columns.tolist()[1:]
+    form.comboBoxAtrybut1.clear()
+    form.comboBoxAtrybut2.clear()
+    form.comboBoxAtrybut1.addItems(column_names)
+    form.comboBoxAtrybut2.addItems(column_names)
+
+
+    # Liczba kolumn minus 1
+    x = len(df.columns) - 1
+
+    # Ustawienie nazw kolumn na liczby od 0 do x
+    df.columns = list(range(x + 1))
+
+
+def zapisz_plikCSV():
+    # Okno dialogowe z pytaniem o zapisanie z nazwami kolumn lub bez
+    msg_box = QMessageBox()
+    msg_box.setWindowTitle("Zapisywanie pliku CSV")
+    msg_box.setText("Czy chcesz zapisać plik z nazwami kolumn?")
+
+    yes_button = msg_box.addButton(QMessageBox.StandardButton.Yes)
+    yes_button.setText("Tak")
+    msg_box.addButton(QMessageBox.StandardButton.No).setText("Nie")
+    cn_button=  msg_box.addButton(QMessageBox.StandardButton.Cancel)
+    cn_button.setVisible(False)
+
+    msg_box.setDefaultButton(yes_button)
+
+    reply = msg_box.exec()
+
+    if reply == 16384:
+        header = True
+    elif reply == 65536:
+        header = False
+    else:
+        return
+
+
+    filename, _ = QFileDialog.getSaveFileName(None, "Zapisz plik CSV", "", "Pliki CSV (*.csv)")
+
+    if filename:
+        df_with_labels.to_csv(filename, index=False, header=header)
+
+def funkcja():
+    distribution()
+
+
+form.actionWczytaj_z_CSV.triggered.connect(wczytaj_plik_csv)
+form.actionZapisz_do_CSV.triggered.connect(zapisz_plikCSV)
+form.actionfunkcja.triggered.connect(funkcja)
+
+
+def distribution():
+    counts = df[table_view.currentIndex().column()].value_counts()
+    plt.pie(counts.values, labels=counts.index, autopct='%1.1f%%')
+    plt.axis('equal')
+    plt.title('Distribution of ' + df_with_labels.columns[table_view.currentIndex().column()])
+    plt.show()
+
 
 
 # włączanie okna aplikacji
