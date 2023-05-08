@@ -1,3 +1,4 @@
+import os
 import sys
 
 import numpy as np
@@ -121,7 +122,10 @@ def calculate_mean(df, column, text_browser):
 
 # Podłączanie GUI poprzez plik ui stworzony QT designerze
 
-Form, Window = uic.loadUiType("C:/Users/Krzyś/PycharmProjects/Zoo_Proj_Inf/main.ui")
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, 'main.ui')
+Form, Window = uic.loadUiType(filename)
+
 
 app = QApplication([])
 window = Window()
