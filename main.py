@@ -154,7 +154,7 @@ labels_no_zero_column = [ "hair", "feathers", "eggs", "milk", "airborne", "aquat
           "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
 model.setHorizontalHeaderLabels(labels)
 df_with_labels.columns = labels
-print(df_with_labels.columns)
+
 # Liczba kolumn minus 1
 x = len(df.columns) - 1
 
@@ -281,6 +281,27 @@ form.pushButtonKoorelacja.clicked.connect(lambda:calculate_coorelation() )
 
 ##Obsługiwanie paska menu
 def wczytaj_plik_csv():
+    msg_box = QMessageBox()
+    msg_box.setWindowTitle("Wczytywanie pliku CSV")
+    msg_box.setText("Czy chcesz wczytać plik z nazwami kolumn?")
+
+    yes_button = msg_box.addButton(QMessageBox.StandardButton.Yes)
+    yes_button.setText("Tak, z nazwami")
+    msg_box.addButton(QMessageBox.StandardButton.No).setText("Nie, bez nazw")
+    cn_button = msg_box.addButton(QMessageBox.StandardButton.Cancel)
+    cn_button.setVisible(False)
+
+    msg_box.setDefaultButton(yes_button)
+
+    reply = msg_box.exec()
+
+    if reply == 16384:
+        header = 0
+    elif reply == 65536:
+        header = None
+    else:
+        return
+
     filename, _ = QFileDialog.getOpenFileName(None, "Wybierz plik CSV lub DATA", "",
                                               "All files (*);;Pliki CSV (*.csv);;Pliki DATA (*.data)")
 
@@ -290,15 +311,22 @@ def wczytaj_plik_csv():
 
     global table_view
     global df
+
+
+
+
     # Wczytaj dane z pliku CSV do obiektu DataFrame z biblioteki Pandas
-    df = pd.read_csv(filename)
-    df2 = df.copy()
+    df = pd.read_csv(filename, header = header)
+    print(df)
+    df_with_labels = df.copy()
     # Wyświetl dane za pomocą funkcji print
 
 
     model = QStandardItemModel(df.shape[0], df.shape[1])
     headers = list(df.columns)
-    model.setHorizontalHeaderLabels(headers)
+    print(headers)
+    if reply == 16384:
+        model.setHorizontalHeaderLabels(headers)
 
 
 
@@ -313,8 +341,8 @@ def wczytaj_plik_csv():
     column_names = df.columns.tolist()[1:]
     form.comboBoxAtrybut1.clear()
     form.comboBoxAtrybut2.clear()
-    form.comboBoxAtrybut1.addItems(column_names)
-    form.comboBoxAtrybut2.addItems(column_names)
+    form.comboBoxAtrybut1.addItems([str(x) for x in column_names])
+    form.comboBoxAtrybut2.addItems([str(x) for x in column_names])
 
 
     # Liczba kolumn minus 1
