@@ -1,19 +1,20 @@
 import os
 import sys
-
+from functools import partial
 import numpy as np
 import seaborn as sns
-from PyQt6 import uic
+from PyQt6 import uic, QtGui, QtWidgets, QtCore
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QStandardItemModel, QStandardItem
 from PyQt6.QtWidgets import QApplication, QTableView, QFileDialog, QMessageBox, QDialog, QPushButton, QVBoxLayout, \
-    QLineEdit, QHBoxLayout
+    QLineEdit, QHBoxLayout, QStyleFactory
 import pandas as pd
 import matplotlib.pyplot as plt
 from reportlab.pdfgen import canvas
-from IPython.display import display
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
+from PyQt6.QtGui import QEnterEvent
 
-
+# obliczenia statystyczne:
 
 def calculate_minimum(text_browser):
     try:
@@ -31,6 +32,7 @@ def calculate_minimum(text_browser):
             text_browser.append(f"Minimum from column {header_text} is: {minimum_str}")
     except Exception as e:
         text_browser.append(f"Error occurred: {str(e)}")
+
 
 def calculate_maximum(text_browser):
     try:
@@ -104,6 +106,23 @@ def calculate_mean(text_browser):
         text_browser.append(f"Error occurred: {str(e)}")
 
 
+def calculate_coorelation():
+    model = table_view.model()
+    # pobierz indeks wybranej kolumny z comboBoxAtrybut1
+    column1_index = form.comboBoxAtrybut1.currentIndex() + 1
+    # pobierz indeks wybranej kolumny z comboBoxAtrybut2
+    column2_index = form.comboBoxAtrybut2.currentIndex() + 1
+    # pobierz dane z wybranej kolumny 1
+    column1_data = [model.data(model.index(row, column1_index)) for row in range(model.rowCount())]
+    # pobierz dane z wybranej kolumny 2
+    column2_data = [model.data(model.index(row, column2_index)) for row in range(model.rowCount())]
+    # utwórz nowy obiekt DataFrame z pobranych danych
+    data = pd.DataFrame(
+        {form.comboBoxAtrybut1.currentText(): column1_data, form.comboBoxAtrybut2.currentText(): column2_data})
+    data = data.apply(pd.to_numeric)
+    correlation_matrix = data[[form.comboBoxAtrybut1.currentText(), form.comboBoxAtrybut2.currentText()]].corr()
+    correlation_coefficient = correlation_matrix.iloc[0, 1]
+    form.textBrowser.append("Koorelacja między tymi atrybutami wynosi: " + str(correlation_coefficient))
 
 
 
@@ -114,7 +133,6 @@ def calculate_mean(text_browser):
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, 'main.ui')
 Form, Window = uic.loadUiType(filename)
-
 
 app = QApplication([])
 window = Window()
@@ -127,7 +145,7 @@ window.setFixedSize(1060, 760)
 df = pd.read_csv('zoo.data', header=None)
 df_with_labels = pd.DataFrame
 df_with_labels = df.copy()
-selected_indexes = set ()
+selected_indexes = set()
 selected_columns = set()
 selected_rows = set()
 # utworzenie obiektu QTableView
@@ -147,7 +165,7 @@ table_view.setModel(model)
 labels = ["animal name", "hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
           "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
 labels_no_zero_column = ["hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
-          "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
+                         "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
 model.setHorizontalHeaderLabels(labels)
 df_with_labels.columns = labels
 
@@ -161,17 +179,108 @@ df.columns = list(range(x + 1))
 table_view = form.tableView
 table_view.setModel(model)
 
-
 # przyciski:
 form.pushButtonMinimum.clicked.connect(lambda: calculate_minimum(form.textBrowser))
 form.pushButtonMaximum.clicked.connect(lambda: calculate_maximum(form.textBrowser))
 form.pushButtonClear.clicked.connect(lambda: form.textBrowser.clear())
 form.pushButtonMean.clicked.connect(lambda: calculate_mean(form.textBrowser))
-form.pushButtonStd.clicked.connect(lambda: calculate_std( form.textBrowser))
+form.pushButtonStd.clicked.connect(lambda: calculate_std(form.textBrowser))
 form.pushButtonMedian.clicked.connect(lambda: calculate_median(form.textBrowser))
 form.pushButtonDystrybucja.clicked.connect(lambda: generate_distribution_plot())
-form.pushButtonKoorelacja.clicked.connect(lambda: calculate_coorelation() )
+form.pushButtonKoorelacja.clicked.connect(lambda: calculate_coorelation())
 form.pushButtonCalcChecked.clicked.connect(lambda: calculate_checked_stats())
+form.pushButtonHeatmap.clicked.connect(lambda: generate_correlation_heatmap())
+
+class CustomHeaderView(QtWidgets.QHeaderView):
+    def paintSection(self, painter, rect, logicalIndex):
+        painter.save()
+        painter.fillRect(rect, QtGui.QColor("black"))
+        painter.setPen(QtGui.QColor("white"))
+        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, table_view.model().headerData(logicalIndex, QtCore.Qt.Orientation.Horizontal))
+        painter.restore()
+class CustomHeaderView2(QtWidgets.QHeaderView):
+    def paintSection(self, painter, rect, logicalIndex):
+        painter.save()
+        painter.fillRect(rect, QtGui.QColor("black"))
+        painter.setPen(QtGui.QColor("white"))
+        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, str(table_view.model().headerData(logicalIndex, QtCore.Qt.Orientation.Vertical)))
+        painter.restore()
+class CustomHeaderView3(QtWidgets.QHeaderView):
+    def paintSection(self, painter, rect, logicalIndex):
+        painter.save()
+        painter.fillRect(rect, QtGui.QColor("white"))
+        painter.setPen(QtGui.QColor("black"))
+        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, table_view.model().headerData(logicalIndex, QtCore.Qt.Orientation.Horizontal))
+        painter.restore()
+class CustomHeaderView4(QtWidgets.QHeaderView):
+    def paintSection(self, painter, rect, logicalIndex):
+        painter.save()
+        painter.fillRect(rect, QtGui.QColor("white"))
+        painter.setPen(QtGui.QColor("black"))
+        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, str(table_view.model().headerData(logicalIndex, QtCore.Qt.Orientation.Vertical)))
+        painter.restore()
+
+
+
+def change_to_darkmode():
+    window.setStyleSheet("""
+            background-color: #262626;
+            color: white;
+            font-family: Titillium;
+            font-size: 14px;
+
+        }
+            """)
+    table_view.setStyleSheet("""
+            background-color: #262626;
+            color: white;
+            font-family: Titillium;
+            font-size: 18px;
+
+        }
+            """)
+
+    hor_header = CustomHeaderView(QtCore.Qt.Orientation.Horizontal)
+    ver_header = CustomHeaderView2(QtCore.Qt.Orientation.Vertical)
+    table_view.setHorizontalHeader(hor_header)
+    table_view.setVerticalHeader(ver_header)
+    model = table_view.model()
+
+    for row in range(model.rowCount()):
+        for column in range(model.columnCount()):
+            item = model.item(row, column)
+            item.setForeground(QtGui.QColor("white"))
+
+    table_view.horizontalHeader().setVisible(True)
+    table_view.verticalHeader().setVisible(True)
+    form.textBrowserInfo.setStyleSheet("font-size: 24px;")
+
+def change_to_lightmode():
+    window.setStyleSheet("")
+    hor_header = CustomHeaderView3(QtCore.Qt.Orientation.Horizontal)
+    ver_header = CustomHeaderView4(QtCore.Qt.Orientation.Vertical)
+    table_view.setHorizontalHeader(hor_header)
+    table_view.setVerticalHeader(ver_header)
+    table_view.horizontalHeader().setVisible(True)
+    table_view.verticalHeader().setVisible(True)
+    table_view.setStyleSheet("""
+            background-color: #fffff;
+            color: black;
+            font-family: Titillium;
+            font-size: 18px;
+
+        }
+            """)
+    model = table_view.model()
+
+    for row in range(model.rowCount()):
+        for column in range(model.columnCount()):
+            item = model.item(row, column)
+            item.setForeground(QtGui.QColor("black"))
+
+
+
+
 
 # wyświetlanie informacji o danej kolumnie
 
@@ -202,51 +311,19 @@ def switch_dictionary(column_name):
 def display_column_info(index):
     column_name = table_view.model().headerData(index.column(), Qt.Orientation.Horizontal)
     form.textBrowserInfo.setText(switch_dictionary(column_name))
+    form.textBrowserInfo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
 
 
 table_view.setMouseTracking(True)
 table_view.entered.connect(display_column_info)
-
 
 # Comboboxy pozwalające na wybór atrybutów danych do porównania
 
 form.comboBoxAtrybut1.addItems(labels_no_zero_column)
 form.comboBoxAtrybut2.addItems(labels_no_zero_column)
 
-# Tworzenie wykresu
-
-# def generate_comparison_plot(attribute_1, attribute_2):
-#     model = form.tableView.model()
-#     # pobierz indeks wybranej kolumny z comboBoxAtrybut1
-#     column1_index = form.comboBoxAtrybut1.currentIndex()+1
-#     # pobierz indeks wybranej kolumny z comboBoxAtrybut2
-#     column2_index = form.comboBoxAtrybut2.currentIndex()+1
-#     # pobierz dane z wybranej kolumny 1
-#     column1_data = [model.data(model.index(row, column1_index)) for row in range(model.rowCount())]
-#     # pobierz dane z wybranej kolumny 2
-#     column2_data = [model.data(model.index(row, column2_index)) for row in range(model.rowCount())]
-#     # utwórz nowy obiekt DataFrame z pobranych danych
-#     data = pd.DataFrame(
-#         {form.comboBoxAtrybut1.currentText(): column1_data, form.comboBoxAtrybut2.currentText(): column2_data})
-#     data = data.apply(pd.to_numeric)
-#     counts = data.apply(pd.Series.value_counts).fillna(0)
-#     counts.plot(kind='bar')
-#
-#     plt.xlabel('Atrybut')
-#     plt.ylabel('Suma')
-#     text1 = attribute_2
-#     text2 = attribute_1
-#     if attribute_1 != attribute_2:
-#         plt.title('Porównanie sumy '+attribute_1+' oraz '+attribute_2)
-#     else:
-#         plt.title('Suma ' + attribute_1)
-#     plt.show()
-#
-#
-#
-# form.pushButtonPorownaj.clicked.connect(lambda:generate_comparison_plot(form.comboBoxAtrybut1.currentText(), form.comboBoxAtrybut2.currentText()))
-
-
+# Generowanie wykresów:
 def generate_comparison_plot():
     model = form.tableView.model()
 
@@ -263,7 +340,7 @@ def generate_comparison_plot():
         data[column_name] = column_data
 
     # Konwertuj dane na typ numeryczny
-    data = data.apply(pd.to_numeric)
+    data = data.apply(pd.to_numeric, errors='coerce')
     counts = data.apply(pd.Series.value_counts).fillna(0)
     counts.plot(kind='bar')
 
@@ -273,7 +350,7 @@ def generate_comparison_plot():
     # Skonstruuj tytuł wykresu na podstawie nazw zaznaczonych atrybutów
     title = "Zliczenia "
     for column_name in data.columns:
-        title += column_name + " + "
+        title += str(column_name) + " + "
 
     title = title[:-3]  # Usuń ostatni znak "+" i spacje
 
@@ -286,33 +363,6 @@ form.pushButtonPorownaj.clicked.connect(generate_comparison_plot)
 
 form.comboBoxAtrybut1.setCurrentIndex(3)
 form.comboBoxAtrybut2.setCurrentIndex(0)
-
-def calculate_coorelation():
-    model = table_view.model()
-    # pobierz indeks wybranej kolumny z comboBoxAtrybut1
-    column1_index = form.comboBoxAtrybut1.currentIndex()+1
-    # pobierz indeks wybranej kolumny z comboBoxAtrybut2
-    column2_index = form.comboBoxAtrybut2.currentIndex()+1
-    # pobierz dane z wybranej kolumny 1
-    column1_data = [model.data(model.index(row, column1_index)) for row in range(model.rowCount())]
-    # pobierz dane z wybranej kolumny 2
-    column2_data = [model.data(model.index(row, column2_index)) for row in range(model.rowCount())]
-    # utwórz nowy obiekt DataFrame z pobranych danych
-    data = pd.DataFrame(
-        {form.comboBoxAtrybut1.currentText(): column1_data, form.comboBoxAtrybut2.currentText(): column2_data})
-    data = data.apply(pd.to_numeric)
-    correlation_matrix = data[[form.comboBoxAtrybut1.currentText(), form.comboBoxAtrybut2.currentText()]].corr()
-    correlation_coefficient = correlation_matrix.iloc[0, 1]
-    form.textBrowser.append("Koorelacja między tymi atrybutami wynosi: " + str(correlation_coefficient))
-
-    # Create a heatmap
-    sns.heatmap(correlation_matrix)
-
-    # Add title
-    plt.title('Correlation Heatmap')
-
-    # Display the plot
-    plt.show()
 
 
 
@@ -351,13 +401,8 @@ def wczytaj_plik_csv():
         # Wyjście z funkcji, jeśli nie został wybrany plik
         return
 
-
-
-
-
-
     # Wczytaj dane z pliku CSV do obiektu DataFrame z biblioteki Pandas
-    df = pd.read_csv(filename, header = header)
+    df = pd.read_csv(filename, header=header)
     df_with_labels = df.copy()
     # Wyświetl dane za pomocą funkcji print
 
@@ -365,7 +410,6 @@ def wczytaj_plik_csv():
     headers = list(df.columns)
     if reply == 16384:
         model.setHorizontalHeaderLabels(headers)
-
 
     for row in range(df.shape[0]):
         for column in range(df.shape[1]):
@@ -381,7 +425,6 @@ def wczytaj_plik_csv():
     form.comboBoxAtrybut1.addItems([str(x) for x in column_names])
     form.comboBoxAtrybut2.addItems([str(x) for x in column_names])
 
-
     # Liczba kolumn minus 1
     x = len(df.columns) - 1
 
@@ -392,6 +435,7 @@ def wczytaj_plik_csv():
     form.selection_model = table_view.selectionModel()
     form.selection_model.selectionChanged.connect(handle_selection_changed)
 
+
 def zapisz_plikCSV():
     # Okno dialogowe z pytaniem o zapisanie z nazwami kolumn lub bez
     msg_box = QMessageBox()
@@ -401,7 +445,7 @@ def zapisz_plikCSV():
     yes_button = msg_box.addButton(QMessageBox.StandardButton.Yes)
     yes_button.setText("Tak")
     msg_box.addButton(QMessageBox.StandardButton.No).setText("Nie")
-    cn_button=  msg_box.addButton(QMessageBox.StandardButton.Cancel)
+    cn_button = msg_box.addButton(QMessageBox.StandardButton.Cancel)
     cn_button.setVisible(False)
 
     msg_box.setDefaultButton(yes_button)
@@ -420,6 +464,8 @@ def zapisz_plikCSV():
 
     if filename:
         df_with_labels.to_csv(filename, index=False, header=header)
+
+
 def reczne_wpisywanie_naglowkow():
     global labels
     global table_view
@@ -466,11 +512,40 @@ def reczne_wpisywanie_naglowkow():
     form.comboBoxAtrybut1.addItems([str(x) for x in labels])
     form.comboBoxAtrybut2.addItems([str(x) for x in labels])
 
-
     print(df_with_labels.columns)
 
+
 def funkcja():
-    print (labels)
+    print(labels)
+
+
+def generate_correlation_heatmap():
+    model = form.tableView.model()
+
+    data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
+
+    for column_index in selected_columns:
+        # Pobierz nazwę wybranej kolumny z QTableView
+        column_name = model.headerData(column_index, Qt.Orientation.Horizontal)
+
+        # Pobierz dane z wybranej kolumny
+        column_data = [model.data(model.index(row, column_index)) for row in range(model.rowCount())]
+
+        # Dodaj dane do obiektu DataFrame
+        data[column_name] = column_data
+
+    # Konwertuj dane na typ numeryczny
+    data = data.apply(pd.to_numeric, errors='coerce')
+
+    # Oblicz macierz korelacji
+    corr_matrix = data.corr()
+
+    # Wygeneruj heatmapę korelacji
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm')
+    plt.title('Heatmap - Korelacja')
+    plt.show()
+
 
 
 def generate_distribution_plot():
@@ -489,7 +564,7 @@ def generate_distribution_plot():
         data[column_name] = column_data
 
     # Konwertuj dane na typ numeryczny
-    data = data.apply(pd.to_numeric)
+    data = data.apply(pd.to_numeric , errors='coerce')
 
     # Sumuj wartości dla każdej kolumny
     counts = data.sum()
@@ -501,26 +576,27 @@ def generate_distribution_plot():
     # Skonstruuj tytuł wykresu na podstawie nazw zaznaczonych atrybutów
     title = "Rozkład "
     for column_name in data.columns:
-        title += column_name + " + "
+        title += str(column_name) + " + "
 
     title = title[:-3]  # Usuń ostatni znak "+" i spacje
 
     plt.title(title)
 
-
     plt.show()
 
+
 def calculate_checked_stats():
-    if(form.checkBoxMin.isChecked()==True):
+    if (form.checkBoxMin.isChecked() == True):
         calculate_minimum(form.textBrowser)
-    if(form.checkBoxMax.isChecked()==True):
-        calculate_maximum( form.textBrowser)
-    if(form.checkBoxStd.isChecked()==True):
-        calculate_std( form.textBrowser)
-    if(form.checkBoxMdn.isChecked()==True):
-        calculate_median( form.textBrowser)
-    if(form.checkBoxMean.isChecked()==True):
-        calculate_mean( form.textBrowser)
+    if (form.checkBoxMax.isChecked() == True):
+        calculate_maximum(form.textBrowser)
+    if (form.checkBoxStd.isChecked() == True):
+        calculate_std(form.textBrowser)
+    if (form.checkBoxMdn.isChecked() == True):
+        calculate_median(form.textBrowser)
+    if (form.checkBoxMean.isChecked() == True):
+        calculate_mean(form.textBrowser)
+
 
 # obsługa zaznaczania rzeczy w tabeli
 def handle_selection_changed():
@@ -543,14 +619,9 @@ def handle_selection_changed():
         print(index.column())
 
 
-
-
-
 table_view.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
 form.selection_model = table_view.selectionModel()
 form.selection_model.selectionChanged.connect(handle_selection_changed)
-
-
 
 
 def generate_pdf():
@@ -588,17 +659,54 @@ def generate_pdf():
         c.save()
 
 
-
-# obsługa paska menu
+# obsługa paska menu:
 form.actionWczytaj_z_CSV.triggered.connect(wczytaj_plik_csv)
 form.actionZapisz_do_CSV.triggered.connect(zapisz_plikCSV)
-
 form.actionWprowadzNagl.triggered.connect(reczne_wpisywanie_naglowkow)
 form.actionGenerateResultsPDF.triggered.connect(generate_pdf)
+form.actionCiemny.triggered.connect(change_to_darkmode)
+form.actionJasny.triggered.connect(change_to_lightmode)
 
-# włączanie okna aplikacji
+# wyświetlanie informacji o przyciskach:
+def switch_dictionary_buttons(button_name):
+    switcher = {
+        "pushButtonMinimum": "Calculates the minimum of selected columns data",
+        "pushButtonMaximum": "Calculates the maximum of selected columns data",
+        "pushButtonStd": "Calculates the standard deviation of selected columns data",
+        "pushButtonMedian": "Calculates the median of selected columns data",
+        "pushButtonMean": "Calculates the arithmetic average of selected columns data",
+        "pushButtonClear": "Clears the result window",
+        "pushButtonCalcChecked": "Designates selected descriptive statistics",
+        "pushButtonKoorelacja": "Calculates the correlation of selected attributes and generates a correlation heatmap",
+        "pushButtonPorownaj": "Generates a comparison plot of selected columns data",
+        "pushButtonDystrybucja": "Generates a distribution plot of selected columns data",
+        "pushButtonHeatmap": "Generates a coorelation Heatmap of selected columns data"
+    }
+    return switcher.get(button_name, "No information available for the button")
+
+
+def on_button_enter(event: QEnterEvent, button_name: str):
+    info = switch_dictionary_buttons(button_name)
+    form.textBrowserInfo.setText(info)
+    form.textBrowserInfo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+
+# Obsługa wyświetlania informacji o przyciskach:
+form.pushButtonMinimum.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonMinimum.objectName()))
+form.pushButtonMaximum.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonMaximum.objectName()))
+form.pushButtonStd.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonStd.objectName()))
+form.pushButtonMedian.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonMedian.objectName()))
+form.pushButtonMean.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonMean.objectName()))
+form.pushButtonClear.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonClear.objectName()))
+form.pushButtonCalcChecked.enterEvent = partial(on_button_enter,
+                                                button_name=str(form.pushButtonCalcChecked.objectName()))
+form.pushButtonKoorelacja.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonKoorelacja.objectName()))
+form.pushButtonPorownaj.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonPorownaj.objectName()))
+form.pushButtonDystrybucja.enterEvent = partial(on_button_enter,
+                                                button_name=str(form.pushButtonDystrybucja.objectName()))
+form.pushButtonHeatmap.enterEvent = partial(on_button_enter,
+                                                button_name=str(form.pushButtonHeatmap.objectName()))
+
+# włączanie okna aplikacji:
 window.show()
 app.exec()
-
-
-

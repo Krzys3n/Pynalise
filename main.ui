@@ -46,6 +46,11 @@
       <height>231</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
     <property name="frameShape">
      <enum>QFrame::Box</enum>
     </property>
@@ -53,8 +58,8 @@
      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Okno informacji&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:14pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Okno informacji&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QWidget" name="gridLayoutWidget">
@@ -242,11 +247,18 @@ p, li { white-space: pre-wrap; }
      <rect>
       <x>530</x>
       <y>570</y>
-      <width>341</width>
+      <width>511</width>
       <height>51</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Wykresy:</string>
+       </property>
+      </widget>
+     </item>
      <item row="2" column="0">
       <widget class="QPushButton" name="pushButtonPorownaj">
        <property name="text">
@@ -261,10 +273,10 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_3">
+     <item row="2" column="2">
+      <widget class="QPushButton" name="pushButtonHeatmap">
        <property name="text">
-        <string>Wykresy:</string>
+        <string>Oblicz Koorelację</string>
        </property>
       </widget>
      </item>
@@ -284,10 +296,18 @@ p, li { white-space: pre-wrap; }
     <property name="title">
      <string>Plik</string>
     </property>
+    <widget class="QMenu" name="menuZmie_motyw">
+     <property name="title">
+      <string>Zmień motyw</string>
+     </property>
+     <addaction name="actionJasny"/>
+     <addaction name="actionCiemny"/>
+    </widget>
     <addaction name="actionWczytaj_z_CSV"/>
     <addaction name="actionZapisz_do_CSV"/>
     <addaction name="actionWprowadzNagl"/>
     <addaction name="actionGenerateResultsPDF"/>
+    <addaction name="menuZmie_motyw"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
@@ -310,6 +330,16 @@ p, li { white-space: pre-wrap; }
   <action name="actionWprowadzNagl">
    <property name="text">
     <string>Wprowadź nagłówki ręcznie</string>
+   </property>
+  </action>
+  <action name="actionJasny">
+   <property name="text">
+    <string>Jasny</string>
+   </property>
+  </action>
+  <action name="actionCiemny">
+   <property name="text">
+    <string>Ciemny</string>
    </property>
   </action>
  </widget>
