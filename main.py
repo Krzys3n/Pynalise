@@ -13,9 +13,11 @@ import matplotlib.pyplot as plt
 from reportlab.pdfgen import canvas
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
 from PyQt6.QtGui import QEnterEvent
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+
 
 # Klasyfikacja danych:
 def code_data(df):
@@ -30,38 +32,57 @@ def code_data(df):
     return df_encoded
 def classificate_selected_data():
     # Przygotowanie danych
-    czy_ma_kolumne = False
-    df_class_init = pd.DataFrame()
-    for column in selected_columns:
-        nazwa_kolumny = df_with_labels.columns[column]
-        df_class_init[nazwa_kolumny] = df_with_labels.iloc[:, column]
-    df_class_init = code_data(df_class_init)
-    # print(df_class_init)
-    predict_column = df_with_labels[form.comboBoxAtrybutClass.currentText()]
-    # print(predict_column)
-    for i in df_class_init.columns:
-        if i == form.comboBoxAtrybutClass.currentText():
-            czy_ma_kolumne = True
-    if czy_ma_kolumne:
-        df_class_init = df_class_init.drop(form.comboBoxAtrybutClass.currentText(), axis=1)
 
-    X_train, X_test, y_train, y_test = train_test_split(df_class_init, predict_column, test_size=0.1, random_state=42)
+    if df_with_labels[form.comboBoxAtrybutClass.currentText()].dtype == 'object' or df_with_labels[form.comboBoxAtrybutClass.currentText()].dtype == 'int64':
+        czy_ma_kolumne = False
+        df_class_init = pd.DataFrame()
+        for column in selected_columns:
+            nazwa_kolumny = df_with_labels.columns[column]
+            df_class_init[nazwa_kolumny] = df_with_labels.iloc[:, column]
+        for i in df_class_init.columns:
+            if i == form.comboBoxAtrybutClass.currentText():
+                czy_ma_kolumne = True
+        if czy_ma_kolumne:
+            df_class_init = df_class_init.drop(form.comboBoxAtrybutClass.currentText(), axis=1)
+        df_class_init = code_data(df_class_init)
+        predict_column = df_with_labels[form.comboBoxAtrybutClass.currentText()]
+        X_train, X_test, y_train, y_test = train_test_split(df_class_init, predict_column, test_size=0.1, random_state=42)
 
-    # Inicjalizacja klasyfikatora
-    classifier = DecisionTreeClassifier()
+        # Inicjalizacja klasyfikatora
+        classifier = DecisionTreeClassifier()
 
-    # Trenowanie klasyfikatora na danych treningowych
-    classifier.fit(X_train, y_train)
+        # Trenowanie klasyfikatora na danych treningowych
+        classifier.fit(X_train, y_train)
 
-    # Wykonanie krzyżowej walidacji
-    predicted_labels = cross_val_predict(classifier, df_class_init, predict_column, cv=5)
+        # Wykonanie krzyżowej walidacji
+        predicted_labels = cross_val_predict(classifier, df_class_init, predict_column, cv=5)
 
-    # Utworzenie nowego DataFrame z przewidzianymi etykietami
-    X_test = df_class_init.copy()
-    X_test[f'Predicted {form.comboBoxAtrybutClass.currentText()}'] = predicted_labels
 
-    # Wyświetlenie wyników klasyfikacji
-    form.textBrowser.append(X_test.to_string())
+
+        # Tworzenie instancji LabelEncoder
+        label_encoder = LabelEncoder()
+
+        # Przekształcenie etykiet klas na liczby całkowite
+        y_test_encoded = label_encoder.fit_transform(df_with_labels[form.comboBoxAtrybutClass.currentText()])
+        predicted_labels_encoded = label_encoder.transform(predicted_labels)
+
+        # Obliczenie dokładności klasyfikacji
+        accuracy = accuracy_score(y_test_encoded, predicted_labels_encoded)
+
+
+
+        # Utworzenie nowego DataFrame z przewidzianymi etykietami
+        X_test = df_class_init.copy()
+        X_test[f'Predicted {form.comboBoxAtrybutClass.currentText()}'] = predicted_labels
+
+        # Wyświetlenie wyników klasyfikacji
+        form.textBrowser.append(X_test.to_string())
+        # Wyświetlenie wyników klasyfikacji
+        form.textBrowser.append(f"\nDokładność klasyfikacji: {accuracy}")
+
+
+    else:
+        form.textBrowser.append("Błąd: Wybrany atrybut do przewidywania jest numeryczny.")
 
 
 # obliczenia statystyczne:
