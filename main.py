@@ -13,10 +13,62 @@ import matplotlib.pyplot as plt
 from reportlab.pdfgen import canvas
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
 from PyQt6.QtGui import QEnterEvent
+from sklearn.model_selection import train_test_split, cross_val_predict
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import OneHotEncoder
+
+# Klasyfikacja danych:
+def code_data(df):
+    dane_tekstowe = df.select_dtypes(include=['object'])
+    dane_numeryczne = df.select_dtypes(exclude=['object'])
+    if dane_tekstowe.empty:
+        return df
+    else:
+        dane_binarne = pd.get_dummies(dane_tekstowe)
+
+
+    df_encoded = pd.concat([dane_numeryczne, dane_binarne], axis=1)
+    return df_encoded
+def classificate_selected_data():
+    # Przygotowanie danych
+    czy_ma_kolumne = False
+    df_class_init = pd.DataFrame()
+    for column in selected_columns:
+        nazwa_kolumny = df_with_labels.columns[column]
+        df_class_init[nazwa_kolumny] = df_with_labels.iloc[:, column]
+    df_class_init = code_data(df_class_init)
+    # print(df_class_init)
+    predict_column = df_with_labels[form.comboBoxAtrybutClass.currentText()]
+    # print(predict_column)
+    for i in df_class_init.columns:
+        if i == form.comboBoxAtrybutClass.currentText():
+            czy_ma_kolumne = True
+    if czy_ma_kolumne:
+        df_class_init = df_class_init.drop(form.comboBoxAtrybutClass.currentText(), axis=1)
+
+    X_train, X_test, y_train, y_test = train_test_split(df_class_init, predict_column, test_size=0.1, random_state=42)
+
+    # Inicjalizacja klasyfikatora
+    classifier = DecisionTreeClassifier()
+
+    # Trenowanie klasyfikatora na danych treningowych
+    classifier.fit(X_train, y_train)
+
+    # Wykonanie krzyżowej walidacji
+    predicted_labels = cross_val_predict(classifier, df_class_init, predict_column, cv=5)
+
+    # Utworzenie nowego DataFrame z przewidzianymi etykietami
+    X_test = df_class_init.copy()
+    X_test[f'Predicted {form.comboBoxAtrybutClass.currentText()}'] = predicted_labels
+
+    # Wyświetlenie wyników klasyfikacji
+    form.textBrowser.append(X_test.to_string())
+
 
 # obliczenia statystyczne:
 
 def calculate_minimum(text_browser):
+
     try:
         for column in selected_columns:
             # Oblicz minimum z wybranej kolumny
@@ -138,7 +190,7 @@ app = QApplication([])
 window = Window()
 form = Form()
 form.setupUi(window)
-window.setFixedSize(1060, 760)
+window.setFixedSize(1060, 800)
 
 
 # wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas
@@ -190,6 +242,7 @@ form.pushButtonDystrybucja.clicked.connect(lambda: generate_distribution_plot())
 form.pushButtonKoorelacja.clicked.connect(lambda: calculate_coorelation())
 form.pushButtonCalcChecked.clicked.connect(lambda: calculate_checked_stats())
 form.pushButtonHeatmap.clicked.connect(lambda: generate_correlation_heatmap())
+form.pushButtonClass.clicked.connect(lambda:  classificate_selected_data())
 
 class CustomHeaderView(QtWidgets.QHeaderView):
     def paintSection(self, painter, rect, logicalIndex):
@@ -322,6 +375,7 @@ table_view.entered.connect(display_column_info)
 
 form.comboBoxAtrybut1.addItems(labels_no_zero_column)
 form.comboBoxAtrybut2.addItems(labels_no_zero_column)
+form.comboBoxAtrybutClass.addItems(labels_no_zero_column)
 
 # Generowanie wykresów:
 def generate_comparison_plot():
@@ -422,8 +476,10 @@ def wczytaj_plik_csv():
     column_names = df.columns.tolist()[1:]
     form.comboBoxAtrybut1.clear()
     form.comboBoxAtrybut2.clear()
+    form.comboBoxAtrybutClass.clear()
     form.comboBoxAtrybut1.addItems([str(x) for x in column_names])
     form.comboBoxAtrybut2.addItems([str(x) for x in column_names])
+    form.comboBoxAtrybutClass.addItems([str(x) for x in column_names])
 
     # Liczba kolumn minus 1
     x = len(df.columns) - 1
@@ -516,7 +572,8 @@ def reczne_wpisywanie_naglowkow():
 
 
 def funkcja():
-    print(labels)
+    for i in selected_columns:
+        print(i)
 
 
 def generate_correlation_heatmap():
@@ -616,7 +673,7 @@ def handle_selection_changed():
     for index in selected_indexes:
         selected_columns.add(index.column())
         selected_rows.add(index.row())
-        print(index.column())
+
 
 
 table_view.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
@@ -680,7 +737,9 @@ def switch_dictionary_buttons(button_name):
         "pushButtonKoorelacja": "Calculates the correlation of selected attributes and generates a correlation heatmap",
         "pushButtonPorownaj": "Generates a comparison plot of selected columns data",
         "pushButtonDystrybucja": "Generates a distribution plot of selected columns data",
-        "pushButtonHeatmap": "Generates a coorelation Heatmap of selected columns data"
+        "pushButtonHeatmap": "Generates a coorelation Heatmap of selected columns data",
+        "pushButtonClass": "Provides classification of selected attribute for selected data"
+
     }
     return switcher.get(button_name, "No information available for the button")
 
@@ -706,6 +765,12 @@ form.pushButtonDystrybucja.enterEvent = partial(on_button_enter,
                                                 button_name=str(form.pushButtonDystrybucja.objectName()))
 form.pushButtonHeatmap.enterEvent = partial(on_button_enter,
                                                 button_name=str(form.pushButtonHeatmap.objectName()))
+form.pushButtonClass.enterEvent = partial(on_button_enter,
+                                                button_name=str(form.pushButtonClass.objectName()))
+# Wywołanie funkcji
+# Classificate_selected_data()
+
+
 
 # włączanie okna aplikacji:
 window.show()
