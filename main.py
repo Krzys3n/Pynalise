@@ -26,7 +26,6 @@ def code_data(df):
     else:
         dane_binarne = pd.get_dummies(dane_tekstowe)
 
-
     df_encoded = pd.concat([dane_numeryczne, dane_binarne], axis=1)
     return df_encoded
 def classificate_selected_data():
