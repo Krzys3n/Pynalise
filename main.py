@@ -210,7 +210,7 @@ app = QApplication([])
 window = Window()
 form = Form()
 form.setupUi(window)
-window.setFixedSize(1060, 800)
+
 
 
 # wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas

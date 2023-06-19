@@ -1,5 +1,7 @@
 import sys
 from PyQt6 import QtWidgets
+from PyQt6.QtCore import QSize, Qt
+
 from main_ui import Ui_MainWindow
 from LoginWidget import Ui_Form
 
