@@ -10,13 +10,23 @@ from PyQt6.QtWidgets import QApplication, QTableView, QFileDialog, QMessageBox, 
     QLineEdit, QHBoxLayout, QStyleFactory
 import pandas as pd
 import matplotlib.pyplot as plt
+from PyQt6.uic import loadUiType
+from matplotlib.backends.backend_qt import MainWindow
 from reportlab.pdfgen import canvas
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QTextBrowser
 from PyQt6.QtGui import QEnterEvent
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+
+
+def is_text_or_number(value):
+    try:
+        float(value)  # Spróbuj przekształcić wartość na liczbę zmiennoprzecinkową
+        return False  # Jeśli się udało, oznacza to, że wartość jest liczbą
+    except ValueError:
+        return True  # Jeśli pojawił się ValueError, oznacza to, że wartość jest tekstem
 
 
 # Klasyfikacja danych:
@@ -30,22 +40,29 @@ def code_data(df):
 
     df_encoded = pd.concat([dane_numeryczne, dane_binarne], axis=1)
     return df_encoded
-def classificate_selected_data():
+def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
     # Przygotowanie danych
+    isTextOrNumber = is_text_or_number(PyQtComboBox.currentText())
+    if(isTextOrNumber == True):
+        temp_column = df_with_labels[(PyQtComboBox.currentText())]
+    if(isTextOrNumber == False):
+        temp_column = df_with_labels[int((PyQtComboBox.currentText()))]
 
-    if df_with_labels[form.comboBoxAtrybutClass.currentText()].dtype == 'object' or df_with_labels[form.comboBoxAtrybutClass.currentText()].dtype == 'int64':
+    print(temp_column)
+    # print(type(PyQtComboBox.currentText()))
+    if temp_column.dtype == 'object' or temp_column.dtype == 'int64':
         czy_ma_kolumne = False
         df_class_init = pd.DataFrame()
         for column in selected_columns:
             nazwa_kolumny = df_with_labels.columns[column]
             df_class_init[nazwa_kolumny] = df_with_labels.iloc[:, column]
         for i in df_class_init.columns:
-            if i == form.comboBoxAtrybutClass.currentText():
+            if i == PyQtComboBox.currentText():
                 czy_ma_kolumne = True
         if czy_ma_kolumne:
-            df_class_init = df_class_init.drop(form.comboBoxAtrybutClass.currentText(), axis=1)
+            df_class_init = df_class_init.drop(temp_column, axis=1)
         df_class_init = code_data(df_class_init)
-        predict_column = df_with_labels[form.comboBoxAtrybutClass.currentText()]
+        predict_column = temp_column
         X_train, X_test, y_train, y_test = train_test_split(df_class_init, predict_column, test_size=0.1, random_state=42)
 
         # Inicjalizacja klasyfikatora
@@ -63,7 +80,7 @@ def classificate_selected_data():
         label_encoder = LabelEncoder()
 
         # Przekształcenie etykiet klas na liczby całkowite
-        y_test_encoded = label_encoder.fit_transform(df_with_labels[form.comboBoxAtrybutClass.currentText()])
+        y_test_encoded = label_encoder.fit_transform(temp_column)
         predicted_labels_encoded = label_encoder.transform(predicted_labels)
 
         # Obliczenie dokładności klasyfikacji
@@ -73,22 +90,21 @@ def classificate_selected_data():
 
         # Utworzenie nowego DataFrame z przewidzianymi etykietami
         X_test = df_class_init.copy()
-        X_test[f'Predicted {form.comboBoxAtrybutClass.currentText()}'] = predicted_labels
+        X_test[f'Predicted {PyQtComboBox.currentText()}'] = predicted_labels
 
         # Wyświetlenie wyników klasyfikacji
-        form.textBrowser.append(X_test.to_string())
+        PyQtTextBrowser.append(X_test.to_string())
         # Wyświetlenie wyników klasyfikacji
-        form.textBrowser.append(f"\nDokładność klasyfikacji: {accuracy}")
+        PyQtTextBrowser.append(f"\nDokładność klasyfikacji: {accuracy}")
 
 
     else:
-        form.textBrowser.append("Błąd: Wybrany atrybut do przewidywania jest numeryczny.")
+        PyQtTextBrowser.append("Błąd: Wybrany atrybut do przewidywania jest numeryczny.")
 
 
 # obliczenia statystyczne:
 
-def calculate_minimum(text_browser):
-
+def calculate_minimum(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
             # Oblicz minimum z wybranej kolumny
@@ -98,15 +114,15 @@ def calculate_minimum(text_browser):
             minimum_str = str(minimum)
 
             # Pobierz tekst nagłówka kolumny z QTableView
-            header_text = table_view.model().headerData(column, Qt.Orientation.Horizontal)
+            header_text = QtTableView.model().headerData(column, Qt.Orientation.Horizontal)
 
             # Wyświetl wartość w QTextBrowser
-            text_browser.append(f"Minimum from column {header_text} is: {minimum_str}")
+            QtTextBrowser.append(f"Minimum from column {header_text} is: {minimum_str}")
     except Exception as e:
-        text_browser.append(f"Error occurred: {str(e)}")
+        QtTextBrowser.append(f"Error occurred: {str(e)}")
 
 
-def calculate_maximum(text_browser):
+def calculate_maximum(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
             # Oblicz maksimum z wybranej kolumny
@@ -116,15 +132,15 @@ def calculate_maximum(text_browser):
             maximum_str = str(maximum)
 
             # Pobierz tekst nagłówka kolumny z QTableView
-            header_text = table_view.model().headerData(column, Qt.Orientation.Horizontal)
+            header_text = QtTableView.model().headerData(column, Qt.Orientation.Horizontal)
 
             # Wyświetl wartość w QTextBrowser
-            text_browser.append(f"Maximum from column {header_text} is: {maximum_str}")
+            QtTextBrowser.append(f"Maximum from column {header_text} is: {maximum_str}")
     except Exception as e:
-        text_browser.append(f"Error occurred: {str(e)}")
+        QtTextBrowser.append(f"Error occurred: {str(e)}")
 
 
-def calculate_median(text_browser):
+def calculate_median(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
             # Oblicz medianę z wybranej kolumny
@@ -134,15 +150,15 @@ def calculate_median(text_browser):
             median_str = str(median)
 
             # Pobierz tekst nagłówka kolumny z QTableView
-            header_text = table_view.model().headerData(column, Qt.Orientation.Horizontal)
+            header_text = QtTableView.model().headerData(column, Qt.Orientation.Horizontal)
 
             # Wyświetl wartość w QTextBrowser
-            text_browser.append(f"Median from column {header_text} is: {median_str}")
+            QtTextBrowser.append(f"Median from column {header_text} is: {median_str}")
     except Exception as e:
-        text_browser.append(f"Error occurred: {str(e)}")
+        QtTextBrowser.append(f"Error occurred: {str(e)}")
 
 
-def calculate_std(text_browser):
+def calculate_std(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
             # Oblicz odchylenie standardowe z wybranej kolumny
@@ -152,15 +168,15 @@ def calculate_std(text_browser):
             std_str = str(std)
 
             # Pobierz tekst nagłówka kolumny z QTableView
-            header_text = table_view.model().headerData(column, Qt.Orientation.Horizontal)
+            header_text = QtTableView.model().headerData(column, Qt.Orientation.Horizontal)
 
             # Wyświetl wartość w QTextBrowser
-            text_browser.append(f"Standard deviation from column {header_text} is: {std_str}")
+            QtTextBrowser.append(f"Standard deviation from column {header_text} is: {std_str}")
     except Exception as e:
-        text_browser.append(f"Error occurred: {str(e)}")
+        QtTextBrowser.append(f"Error occurred: {str(e)}")
 
 
-def calculate_mean(text_browser):
+def calculate_mean(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
             # Oblicz średnią z wybranej kolumny
@@ -170,46 +186,47 @@ def calculate_mean(text_browser):
             mean_str = str(mean)
 
             # Pobierz tekst nagłówka kolumny z QTableView
-            header_text = table_view.model().headerData(column, Qt.Orientation.Horizontal)
+            header_text = QtTableView.model().headerData(column, Qt.Orientation.Horizontal)
 
             # Wyświetl wartość w QTextBrowser
-            text_browser.append(f"Mean from column {header_text} is: {mean_str}")
+            QtTextBrowser.append(f"Mean from column {header_text} is: {mean_str}")
     except Exception as e:
-        text_browser.append(f"Error occurred: {str(e)}")
+        QtTextBrowser.append(f"Error occurred: {str(e)}")
 
 
-def calculate_coorelation():
-    model = table_view.model()
+def calculate_coorelation(comboBoxAtrybut1, comboBoxAtrybut2,PyQtTextBrowser,tableView):
+    model = tableView.model()
     # pobierz indeks wybranej kolumny z comboBoxAtrybut1
-    column1_index = form.comboBoxAtrybut1.currentIndex() + 1
+    column1_index = comboBoxAtrybut1.currentIndex() + 1
     # pobierz indeks wybranej kolumny z comboBoxAtrybut2
-    column2_index = form.comboBoxAtrybut2.currentIndex() + 1
+    column2_index = comboBoxAtrybut2.currentIndex() + 1
     # pobierz dane z wybranej kolumny 1
     column1_data = [model.data(model.index(row, column1_index)) for row in range(model.rowCount())]
     # pobierz dane z wybranej kolumny 2
     column2_data = [model.data(model.index(row, column2_index)) for row in range(model.rowCount())]
     # utwórz nowy obiekt DataFrame z pobranych danych
     data = pd.DataFrame(
-        {form.comboBoxAtrybut1.currentText(): column1_data, form.comboBoxAtrybut2.currentText(): column2_data})
+        {comboBoxAtrybut1.currentText(): column1_data, comboBoxAtrybut2.currentText(): column2_data})
     data = data.apply(pd.to_numeric)
-    correlation_matrix = data[[form.comboBoxAtrybut1.currentText(), form.comboBoxAtrybut2.currentText()]].corr()
+    correlation_matrix = data[[comboBoxAtrybut1.currentText(), comboBoxAtrybut2.currentText()]].corr()
     correlation_coefficient = correlation_matrix.iloc[0, 1]
-    form.textBrowser.append("Koorelacja między tymi atrybutami wynosi: " + str(correlation_coefficient))
-
+    PyQtTextBrowser.append("Koorelacja między tymi atrybutami wynosi: " + str(correlation_coefficient))
 
 
 
 
 # Podłączanie GUI poprzez plik ui stworzony QT designerze
+#
+# dirname = os.path.dirname(__file__)
+# filename = os.path.join(dirname, 'main.ui')
+# Form, Window = uic.loadUiType(filename)
+#
+# app = QApplication(sys.argv)
+# window = Window()
+# self = Form()
+# self.setupUi(window)
 
-dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, 'main.ui')
-Form, Window = uic.loadUiType(filename)
 
-app = QApplication([])
-window = Window()
-form = Form()
-form.setupUi(window)
 
 
 
@@ -221,48 +238,48 @@ selected_indexes = set()
 selected_columns = set()
 selected_rows = set()
 # utworzenie obiektu QTableView
-table_view = QTableView()
+# table_view = QTableView()
 
-# utworzenie obiektu modelu danych i przypisanie go do tabeli
-model = QStandardItemModel(df.shape[0], df.shape[1])
-model.setHorizontalHeaderLabels([str(i) for i in range(df.shape[1])])
-for row in range(df.shape[0]):
-    for column in range(df.shape[1]):
-        item = QStandardItem(str(df.iloc[row, column]))
-        model.setItem(row, column, item)
+# # utworzenie obiektu modelu danych i przypisanie go do tabeli
+# model = QStandardItemModel(df.shape[0], df.shape[1])
+# model.setHorizontalHeaderLabels([str(i) for i in range(df.shape[1])])
+# for row in range(df.shape[0]):
+#     for column in range(df.shape[1]):
+#         item = QStandardItem(str(df.iloc[row, column]))
+#         model.setItem(row, column, item)
 
-table_view.setModel(model)
+# table_view.setModel(model)
 
 # Ustawianie nazw kolumn
 labels = ["animal name", "hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
           "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
 labels_no_zero_column = ["hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
                          "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
-model.setHorizontalHeaderLabels(labels)
+# model.setHorizontalHeaderLabels(labels)
 df_with_labels.columns = labels
 
-# Liczba kolumn minus 1
-x = len(df.columns) - 1
-
-# Ustawienie nazw kolumn na liczby od 0 do x
-df.columns = list(range(x + 1))
-
-# dodanie tabeli do layoutuu
-table_view = form.tableView
-table_view.setModel(model)
-
-# przyciski:
-form.pushButtonMinimum.clicked.connect(lambda: calculate_minimum(form.textBrowser))
-form.pushButtonMaximum.clicked.connect(lambda: calculate_maximum(form.textBrowser))
-form.pushButtonClear.clicked.connect(lambda: form.textBrowser.clear())
-form.pushButtonMean.clicked.connect(lambda: calculate_mean(form.textBrowser))
-form.pushButtonStd.clicked.connect(lambda: calculate_std(form.textBrowser))
-form.pushButtonMedian.clicked.connect(lambda: calculate_median(form.textBrowser))
-form.pushButtonDystrybucja.clicked.connect(lambda: generate_distribution_plot())
-form.pushButtonKoorelacja.clicked.connect(lambda: calculate_coorelation())
-form.pushButtonCalcChecked.clicked.connect(lambda: calculate_checked_stats())
-form.pushButtonHeatmap.clicked.connect(lambda: generate_correlation_heatmap())
-form.pushButtonClass.clicked.connect(lambda:  classificate_selected_data())
+# # Liczba kolumn minus 1
+# x = len(df.columns) - 1
+#
+# # Ustawienie nazw kolumn na liczby od 0 do x
+# df.columns = list(range(x + 1))
+#
+# # dodanie tabeli do layoutuu
+# table_view = self.tableView
+# table_view.setModel(model)
+#
+# # przyciski:
+# self.pushButtonMinimum.clicked.connect(lambda: calculate_minimum(self.textBrowser))
+# self.pushButtonMaximum.clicked.connect(lambda: calculate_maximum(self.textBrowser))
+# self.pushButtonClear.clicked.connect(lambda: self.textBrowser.clear())
+# self.pushButtonMean.clicked.connect(lambda: calculate_mean(self.textBrowser))
+# self.pushButtonStd.clicked.connect(lambda: calculate_std(self.textBrowser))
+# self.pushButtonMedian.clicked.connect(lambda: calculate_median(self.textBrowser))
+# self.pushButtonDystrybucja.clicked.connect(lambda: generate_distribution_plot())
+# self.pushButtonKoorelacja.clicked.connect(lambda: calculate_coorelation())
+# self.pushButtonCalcChecked.clicked.connect(lambda: calculate_checked_stats())
+# self.pushButtonHeatmap.clicked.connect(lambda: generate_correlation_heatmap())
+# self.pushButtonClass.clicked.connect(lambda:  classificate_selected_data())
 
 class CustomHeaderView(QtWidgets.QHeaderView):
     def paintSection(self, painter, rect, logicalIndex):
@@ -295,7 +312,7 @@ class CustomHeaderView4(QtWidgets.QHeaderView):
 
 
 
-def change_to_darkmode():
+def change_to_darkmode(window,table_view,textBrowserInfo):
     window.setStyleSheet("""
             background-color: #262626;
             color: white;
@@ -326,9 +343,9 @@ def change_to_darkmode():
 
     table_view.horizontalHeader().setVisible(True)
     table_view.verticalHeader().setVisible(True)
-    form.textBrowserInfo.setStyleSheet("font-size: 24px;")
+    textBrowserInfo.setStyleSheet("font-size: 24px;")
 
-def change_to_lightmode():
+def change_to_lightmode(window,table_view):
     window.setStyleSheet("")
     hor_header = CustomHeaderView3(QtCore.Qt.Orientation.Horizontal)
     ver_header = CustomHeaderView4(QtCore.Qt.Orientation.Vertical)
@@ -357,7 +374,7 @@ def change_to_lightmode():
 
 # wyświetlanie informacji o danej kolumnie
 
-def switch_dictionary(column_name):
+def switch_dictionary(column_name): #git
     switcher = {
         "animal name": "The name of the animal",
         "hair": "Whether the animal has hair or not",
@@ -381,25 +398,25 @@ def switch_dictionary(column_name):
     return switcher.get(column_name, "No info about Column")
 
 
-def display_column_info(index):
+def display_column_info(index,table_view,textBrowserInfo): #git
     column_name = table_view.model().headerData(index.column(), Qt.Orientation.Horizontal)
-    form.textBrowserInfo.setText(switch_dictionary(column_name))
-    form.textBrowserInfo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    textBrowserInfo.setText(switch_dictionary(column_name))
+    textBrowserInfo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
 
-table_view.setMouseTracking(True)
-table_view.entered.connect(display_column_info)
-
-# Comboboxy pozwalające na wybór atrybutów danych do porównania
-
-form.comboBoxAtrybut1.addItems(labels_no_zero_column)
-form.comboBoxAtrybut2.addItems(labels_no_zero_column)
-form.comboBoxAtrybutClass.addItems(labels_no_zero_column)
+# table_view.setMouseTracking(True)
+# table_view.entered.connect(display_column_info)
+#
+# # Comboboxy pozwalające na wybór atrybutów danych do porównania
+#
+# self.comboBoxAtrybut1.addItems(labels_no_zero_column)
+# self.comboBoxAtrybut2.addItems(labels_no_zero_column)
+# self.comboBoxAtrybutClass.addItems(labels_no_zero_column)
 
 # Generowanie wykresów:
-def generate_comparison_plot():
-    model = form.tableView.model()
+def generate_comparison_plot(tableView): #git
+    model = tableView.model()
 
     data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
 
@@ -432,19 +449,18 @@ def generate_comparison_plot():
 
     plt.show()
 
-
-form.pushButtonPorownaj.clicked.connect(generate_comparison_plot)
-
-form.comboBoxAtrybut1.setCurrentIndex(3)
-form.comboBoxAtrybut2.setCurrentIndex(0)
+#
+#
+#
+# self.comboBoxAtrybut1.setCurrentIndex(3)
+# self.comboBoxAtrybut2.setCurrentIndex(0)
 
 
 
 ##########################
 
 ##Obsługiwanie paska menu
-def wczytaj_plik_csv():
-    global table_view
+def wczytaj_plik_csv(comboBoxAtrybut1,comboBoxAtrybut2,comboBoxAtrybutClass,tableView):
     global df
     global df_with_labels
     msg_box = QMessageBox()
@@ -490,16 +506,16 @@ def wczytaj_plik_csv():
             item = QStandardItem(str(df.iloc[row, column]))
             model.setItem(row, column, item)
 
-    table_view.setModel(model)
+    tableView.setModel(model)
 
     # wczytywanie nazw kolumn do comboboxów
     column_names = df.columns.tolist()[1:]
-    form.comboBoxAtrybut1.clear()
-    form.comboBoxAtrybut2.clear()
-    form.comboBoxAtrybutClass.clear()
-    form.comboBoxAtrybut1.addItems([str(x) for x in column_names])
-    form.comboBoxAtrybut2.addItems([str(x) for x in column_names])
-    form.comboBoxAtrybutClass.addItems([str(x) for x in column_names])
+    comboBoxAtrybut1.clear()
+    comboBoxAtrybut2.clear()
+    comboBoxAtrybutClass.clear()
+    comboBoxAtrybut1.addItems([str(x) for x in column_names])
+    comboBoxAtrybut2.addItems([str(x) for x in column_names])
+    comboBoxAtrybutClass.addItems([str(x) for x in column_names])
 
     # Liczba kolumn minus 1
     x = len(df.columns) - 1
@@ -507,9 +523,9 @@ def wczytaj_plik_csv():
     # Ustawienie nazw kolumn na liczby od 0 do x
     df.columns = list(range(x + 1))
 
-    table_view.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
-    form.selection_model = table_view.selectionModel()
-    form.selection_model.selectionChanged.connect(handle_selection_changed)
+    tableView.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
+    selection_model = tableView.selectionModel()
+    selection_model.selectionChanged.connect(lambda:handle_selection_changed(tableView))
 
 
 def zapisz_plikCSV():
@@ -542,9 +558,7 @@ def zapisz_plikCSV():
         df_with_labels.to_csv(filename, index=False, header=header)
 
 
-def reczne_wpisywanie_naglowkow():
-    global labels
-    global table_view
+def reczne_wpisywanie_naglowkow(comboBoxAtrybut1,comboBoxAtrybut2,comboBoxAtrybutClass, tableView):
     global df
     global df_with_labels
     labels = []
@@ -578,26 +592,24 @@ def reczne_wpisywanie_naglowkow():
             item = QStandardItem(str(df.iloc[row, column]))
             model.setItem(row, column, item)
 
-    table_view.setModel(model)
+    tableView.setModel(model)
 
     df_with_labels.columns = labels
 
     # wczytywanie nazw kolumn do comboboxów
-    form.comboBoxAtrybut1.clear()
-    form.comboBoxAtrybut2.clear()
-    form.comboBoxAtrybut1.addItems([str(x) for x in labels])
-    form.comboBoxAtrybut2.addItems([str(x) for x in labels])
-
-    print(df_with_labels.columns)
-
-
-def funkcja():
-    for i in selected_columns:
-        print(i)
+    comboBoxAtrybut1.clear()
+    comboBoxAtrybut2.clear()
+    comboBoxAtrybutClass.clear()
+    comboBoxAtrybut1.addItems([str(x) for x in labels])
+    comboBoxAtrybut2.addItems([str(x) for x in labels])
+    comboBoxAtrybutClass.addItems([str(x)for x in labels])
 
 
-def generate_correlation_heatmap():
-    model = form.tableView.model()
+
+
+
+def generate_correlation_heatmap(tableView): #git
+    model = tableView.model()
 
     data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
 
@@ -625,8 +637,8 @@ def generate_correlation_heatmap():
 
 
 
-def generate_distribution_plot():
-    model = form.tableView.model()
+def generate_distribution_plot(tableView): #git
+    model = tableView.model()
 
     data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
 
@@ -662,30 +674,29 @@ def generate_distribution_plot():
     plt.show()
 
 
-def calculate_checked_stats():
-    if (form.checkBoxMin.isChecked() == True):
-        calculate_minimum(form.textBrowser)
-    if (form.checkBoxMax.isChecked() == True):
-        calculate_maximum(form.textBrowser)
-    if (form.checkBoxStd.isChecked() == True):
-        calculate_std(form.textBrowser)
-    if (form.checkBoxMdn.isChecked() == True):
-        calculate_median(form.textBrowser)
-    if (form.checkBoxMean.isChecked() == True):
-        calculate_mean(form.textBrowser)
+def calculate_checked_stats(checkBoxMin,checkBoxMax,checkBoxStd,checkBoxMdn,checkBoxMean,textBrowser,tableView):
+    if (checkBoxMin.isChecked() == True):
+        calculate_minimum(textBrowser,tableView)
+    if (checkBoxMax.isChecked() == True):
+        calculate_maximum(textBrowser,tableView)
+    if (checkBoxStd.isChecked() == True):
+        calculate_std(textBrowser,tableView)
+    if (checkBoxMdn.isChecked() == True):
+        calculate_median(textBrowser,tableView)
+    if (checkBoxMean.isChecked() == True):
+        calculate_mean(textBrowser,tableView)
 
 
 # obsługa zaznaczania rzeczy w tabeli
-def handle_selection_changed():
+def handle_selection_changed(QtTableView):
     global selected_columns
     global selected_rows
-    global table_view
-    selected_indexes = table_view.selectionModel().selectedIndexes()
+    selected_indexes = QtTableView.selectionModel().selectedIndexes()
     selected_columns.clear()
     selected_rows.clear()
 
     # Sprawdź, czy liczba kolumn się zmieniła
-    model = table_view.model()
+    model = QtTableView.model()
     if model.columnCount() != len(selected_columns):
         # Zresetuj listę selected_columns
         selected_columns = set()
@@ -696,12 +707,12 @@ def handle_selection_changed():
 
 
 
-table_view.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
-form.selection_model = table_view.selectionModel()
-form.selection_model.selectionChanged.connect(handle_selection_changed)
+# table_view.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
+# self.selection_model = table_view.selectionModel()
+# self.selection_model.selectionChanged.connect(handle_selection_changed)
 
 
-def generate_pdf():
+def generate_pdf(QtTextBrowser):
     # Wyświetl okno dialogowe do wyboru miejsca zapisu pliku
     file_dialog = QFileDialog()
     file_dialog.setWindowTitle("Save PDF")
@@ -717,7 +728,7 @@ def generate_pdf():
 
     if file_path:
         # Pobierz tekst z QTextBrowser
-        text = form.textBrowser.toPlainText()
+        text = QtTextBrowser.toPlainText()
 
         # Utwórz nowy obiekt Canvas
         c = canvas.Canvas(file_path)
@@ -737,15 +748,15 @@ def generate_pdf():
 
 
 # obsługa paska menu:
-form.actionWczytaj_z_CSV.triggered.connect(wczytaj_plik_csv)
-form.actionZapisz_do_CSV.triggered.connect(zapisz_plikCSV)
-form.actionWprowadzNagl.triggered.connect(reczne_wpisywanie_naglowkow)
-form.actionGenerateResultsPDF.triggered.connect(generate_pdf)
-form.actionCiemny.triggered.connect(change_to_darkmode)
-form.actionJasny.triggered.connect(change_to_lightmode)
+# self.actionWczytaj_z_CSV.triggered.connect(wczytaj_plik_csv)
+# self.actionZapisz_do_CSV.triggered.connect(zapisz_plikCSV)
+# self.actionWprowadzNagl.triggered.connect(reczne_wpisywanie_naglowkow)
+# self.actionGenerateResultsPDF.triggered.connect(generate_pdf)
+# self.actionCiemny.triggered.connect(change_to_darkmode)
+# self.actionJasny.triggered.connect(change_to_lightmode)
 
 # wyświetlanie informacji o przyciskach:
-def switch_dictionary_buttons(button_name):
+def switch_dictionary_buttons(button_name): #git
     switcher = {
         "pushButtonMinimum": "Calculates the minimum of selected columns data",
         "pushButtonMaximum": "Calculates the maximum of selected columns data",
@@ -764,34 +775,34 @@ def switch_dictionary_buttons(button_name):
     return switcher.get(button_name, "No information available for the button")
 
 
-def on_button_enter(event: QEnterEvent, button_name: str):
+def on_button_enter(event: QEnterEvent, button_name: str, QtTextBrowser): #git
     info = switch_dictionary_buttons(button_name)
-    form.textBrowserInfo.setText(info)
-    form.textBrowserInfo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    QtTextBrowser.setText(info)
+    QtTextBrowser.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
-# Obsługa wyświetlania informacji o przyciskach:
-form.pushButtonMinimum.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonMinimum.objectName()))
-form.pushButtonMaximum.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonMaximum.objectName()))
-form.pushButtonStd.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonStd.objectName()))
-form.pushButtonMedian.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonMedian.objectName()))
-form.pushButtonMean.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonMean.objectName()))
-form.pushButtonClear.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonClear.objectName()))
-form.pushButtonCalcChecked.enterEvent = partial(on_button_enter,
-                                                button_name=str(form.pushButtonCalcChecked.objectName()))
-form.pushButtonKoorelacja.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonKoorelacja.objectName()))
-form.pushButtonPorownaj.enterEvent = partial(on_button_enter, button_name=str(form.pushButtonPorownaj.objectName()))
-form.pushButtonDystrybucja.enterEvent = partial(on_button_enter,
-                                                button_name=str(form.pushButtonDystrybucja.objectName()))
-form.pushButtonHeatmap.enterEvent = partial(on_button_enter,
-                                                button_name=str(form.pushButtonHeatmap.objectName()))
-form.pushButtonClass.enterEvent = partial(on_button_enter,
-                                                button_name=str(form.pushButtonClass.objectName()))
+# # Obsługa wyświetlania informacji o przyciskach:
+# self.pushButtonMinimum.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonMinimum.objectName()))
+# self.pushButtonMaximum.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonMaximum.objectName()))
+# self.pushButtonStd.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonStd.objectName()))
+# self.pushButtonMedian.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonMedian.objectName()))
+# self.pushButtonMean.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonMean.objectName()))
+# self.pushButtonClear.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonClear.objectName()))
+# self.pushButtonCalcChecked.enterEvent = partial(on_button_enter,
+#                                                 button_name=str(self.pushButtonCalcChecked.objectName()))
+# self.pushButtonKoorelacja.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonKoorelacja.objectName()))
+# self.pushButtonPorownaj.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonPorownaj.objectName()))
+# self.pushButtonDystrybucja.enterEvent = partial(on_button_enter,
+#                                                 button_name=str(self.pushButtonDystrybucja.objectName()))
+# self.pushButtonHeatmap.enterEvent = partial(on_button_enter,
+#                                             button_name=str(self.pushButtonHeatmap.objectName()))
+# self.pushButtonClass.enterEvent = partial(on_button_enter,
+#                                           button_name=str(self.pushButtonClass.objectName()))
 # Wywołanie funkcji
 # Classificate_selected_data()
 
 
 
-# włączanie okna aplikacji:
-window.show()
-app.exec()
+# # włączanie okna aplikacji:
+# window.show()
+# sys.exit( app.exec())

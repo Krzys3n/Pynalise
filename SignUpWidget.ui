@@ -83,7 +83,7 @@
     </layout>
    </item>
    <item row="2" column="0" colspan="2">
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="pushButtonSign">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
        <horstretch>0</horstretch>

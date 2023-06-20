@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1060</width>
-    <height>819</height>
+    <width>1205</width>
+    <height>808</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,9 +21,6 @@
        <bool>true</bool>
       </property>
      </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QTextBrowser" name="textBrowser"/>
     </item>
     <item row="1" column="1">
      <widget class="QTextBrowser" name="textBrowserInfo">
@@ -43,6 +40,9 @@ p, li { white-space: pre-wrap; }
 &lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Okno informacji&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QTextBrowser" name="textBrowser"/>
     </item>
     <item row="2" column="0">
      <layout class="QGridLayout" name="gridLayout_4">
@@ -115,7 +115,7 @@ p, li { white-space: pre-wrap; }
       <item row="2" column="2">
        <widget class="QPushButton" name="pushButtonHeatmap">
         <property name="text">
-         <string>Oblicz Koorelację</string>
+         <string>Wykres Korelacji</string>
         </property>
        </widget>
       </item>
@@ -268,8 +268,8 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1060</width>
-     <height>23</height>
+     <width>1205</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
