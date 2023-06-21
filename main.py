@@ -21,7 +21,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 
-# wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas
+# przechowywanie dancyh
 df = pd.read_csv('zoo.data', header=None)
 df_with_labels = pd.DataFrame
 df_with_labels = df.copy()
@@ -36,6 +36,14 @@ labels_no_zero_column = ["hair", "feathers", "eggs", "milk", "airborne", "aquati
 # model.setHorizontalHeaderLabels(labels)
 df_with_labels.columns = labels
 
+# Liczba kolumn minus 1
+x = len(df.columns) - 1
+#
+# # Ustawienie nazw kolumn na liczby od 0 do x
+df.columns = list(range(x + 1))
+#
+
+# Klasyfikacja danych:
 def is_text_or_number(value):
     try:
         float(value)  # Spróbuj przekształcić wartość na liczbę zmiennoprzecinkową
@@ -43,8 +51,6 @@ def is_text_or_number(value):
     except ValueError:
         return True  # Jeśli pojawił się ValueError, oznacza to, że wartość jest tekstem
 
-
-# Klasyfikacja danych:
 def code_data(df):
     dane_tekstowe = df.select_dtypes(include=['object'])
     dane_numeryczne = df.select_dtypes(exclude=['object'])
@@ -55,6 +61,7 @@ def code_data(df):
 
     df_encoded = pd.concat([dane_numeryczne, dane_binarne], axis=1)
     return df_encoded
+
 def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
     # Przygotowanie danych
     global delete_col
@@ -66,11 +73,6 @@ def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
         temp_column = df_with_labels[int(PyQtComboBox.currentText())]
         delete_col = int(PyQtComboBox.currentText())-1
 
-
-
-
-
-    # print(type(PyQtComboBox.currentText()))
     if temp_column.dtype == 'object' or temp_column.dtype == 'int64':
         czy_ma_kolumne = False
         df_class_init = pd.DataFrame()
@@ -102,8 +104,6 @@ def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
         # Wykonanie krzyżowej walidacji
         predicted_labels = cross_val_predict(classifier, df_class_init, predict_column, cv=5)
 
-
-
         # Tworzenie instancji LabelEncoder
         label_encoder = LabelEncoder()
 
@@ -114,8 +114,6 @@ def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
         # Obliczenie dokładności klasyfikacji
         accuracy = accuracy_score(y_test_encoded, predicted_labels_encoded)
 
-
-
         # Utworzenie nowego DataFrame z przewidzianymi etykietami
         X_test = df_class_init.copy()
         X_test[f'Predicted {PyQtComboBox.currentText()}'] = predicted_labels
@@ -124,13 +122,10 @@ def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
         PyQtTextBrowser.append(X_test.to_string())
         # Wyświetlenie wyników klasyfikacji
         PyQtTextBrowser.append(f"\nDokładność klasyfikacji: {accuracy}")
-
-
     else:
         PyQtTextBrowser.append("Błąd: Wybrany atrybut do przewidywania jest numeryczny.")
 
-
-# obliczenia statystyczne:
+# Funkcje statystyczne:
 
 def calculate_minimum(QtTextBrowser, QtTableView): #git
     try:
@@ -149,7 +144,6 @@ def calculate_minimum(QtTextBrowser, QtTableView): #git
     except Exception as e:
         QtTextBrowser.append(f"Error occurred: {str(e)}")
 
-
 def calculate_maximum(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
@@ -166,7 +160,6 @@ def calculate_maximum(QtTextBrowser, QtTableView): #git
             QtTextBrowser.append(f"Maximum from column {header_text} is: {maximum_str}")
     except Exception as e:
         QtTextBrowser.append(f"Error occurred: {str(e)}")
-
 
 def calculate_median(QtTextBrowser, QtTableView): #git
     try:
@@ -185,7 +178,6 @@ def calculate_median(QtTextBrowser, QtTableView): #git
     except Exception as e:
         QtTextBrowser.append(f"Error occurred: {str(e)}")
 
-
 def calculate_std(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
@@ -203,7 +195,6 @@ def calculate_std(QtTextBrowser, QtTableView): #git
     except Exception as e:
         QtTextBrowser.append(f"Error occurred: {str(e)}")
 
-
 def calculate_mean(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
@@ -220,7 +211,6 @@ def calculate_mean(QtTextBrowser, QtTableView): #git
             QtTextBrowser.append(f"Mean from column {header_text} is: {mean_str}")
     except Exception as e:
         QtTextBrowser.append(f"Error occurred: {str(e)}")
-
 
 def calculate_coorelation(comboBoxAtrybut1, comboBoxAtrybut2,PyQtTextBrowser,tableView):
     model = tableView.model()
@@ -241,187 +231,20 @@ def calculate_coorelation(comboBoxAtrybut1, comboBoxAtrybut2,PyQtTextBrowser,tab
     PyQtTextBrowser.append("Koorelacja między tymi atrybutami wynosi: " + str(correlation_coefficient))
 
 
+def calculate_checked_stats(checkBoxMin,checkBoxMax,checkBoxStd,checkBoxMdn,checkBoxMean,textBrowser,tableView):
+    if (checkBoxMin.isChecked() == True):
+        calculate_minimum(textBrowser,tableView)
+    if (checkBoxMax.isChecked() == True):
+        calculate_maximum(textBrowser,tableView)
+    if (checkBoxStd.isChecked() == True):
+        calculate_std(textBrowser,tableView)
+    if (checkBoxMdn.isChecked() == True):
+        calculate_median(textBrowser,tableView)
+    if (checkBoxMean.isChecked() == True):
+        calculate_mean(textBrowser,tableView)
 
+# funkcje generowania wykresów:
 
-# Podłączanie GUI poprzez plik ui stworzony QT designerze
-#
-# dirname = os.path.dirname(__file__)
-# filename = os.path.join(dirname, 'main.ui')
-# Form, Window = uic.loadUiType(filename)
-#
-# app = QApplication(sys.argv)
-# window = Window()
-# self = Form()
-# self.setupUi(window)
-
-
-
-
-
-
-# utworzenie obiektu QTableView
-# table_view = QTableView()
-
-# # utworzenie obiektu modelu danych i przypisanie go do tabeli
-# model = QStandardItemModel(df.shape[0], df.shape[1])
-# model.setHorizontalHeaderLabels([str(i) for i in range(df.shape[1])])
-# for row in range(df.shape[0]):
-#     for column in range(df.shape[1]):
-#         item = QStandardItem(str(df.iloc[row, column]))
-#         model.setItem(row, column, item)
-
-# table_view.setModel(model)
-
-
-
-# # Liczba kolumn minus 1
-# x = len(df.columns) - 1
-#
-# # Ustawienie nazw kolumn na liczby od 0 do x
-# df.columns = list(range(x + 1))
-#
-# # dodanie tabeli do layoutuu
-# table_view = self.tableView
-# table_view.setModel(model)
-#
-# # przyciski:
-# self.pushButtonMinimum.clicked.connect(lambda: calculate_minimum(self.textBrowser))
-# self.pushButtonMaximum.clicked.connect(lambda: calculate_maximum(self.textBrowser))
-# self.pushButtonClear.clicked.connect(lambda: self.textBrowser.clear())
-# self.pushButtonMean.clicked.connect(lambda: calculate_mean(self.textBrowser))
-# self.pushButtonStd.clicked.connect(lambda: calculate_std(self.textBrowser))
-# self.pushButtonMedian.clicked.connect(lambda: calculate_median(self.textBrowser))
-# self.pushButtonDystrybucja.clicked.connect(lambda: generate_distribution_plot())
-# self.pushButtonKoorelacja.clicked.connect(lambda: calculate_coorelation())
-# self.pushButtonCalcChecked.clicked.connect(lambda: calculate_checked_stats())
-# self.pushButtonHeatmap.clicked.connect(lambda: generate_correlation_heatmap())
-# self.pushButtonClass.clicked.connect(lambda:  classificate_selected_data())
-
-class CustomHeaderView(QtWidgets.QHeaderView):
-    def paintSection(self, painter, rect, logicalIndex):
-        painter.save()
-        painter.fillRect(rect, QtGui.QColor("black"))
-        painter.setPen(QtGui.QColor("white"))
-        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, table_view.model().headerData(logicalIndex, QtCore.Qt.Orientation.Horizontal))
-        painter.restore()
-class CustomHeaderView2(QtWidgets.QHeaderView):
-    def paintSection(self, painter, rect, logicalIndex):
-        painter.save()
-        painter.fillRect(rect, QtGui.QColor("black"))
-        painter.setPen(QtGui.QColor("white"))
-        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, str(table_view.model().headerData(logicalIndex, QtCore.Qt.Orientation.Vertical)))
-        painter.restore()
-class CustomHeaderView3(QtWidgets.QHeaderView):
-    def paintSection(self, painter, rect, logicalIndex):
-        painter.save()
-        painter.fillRect(rect, QtGui.QColor("white"))
-        painter.setPen(QtGui.QColor("black"))
-        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, table_view.model().headerData(logicalIndex, QtCore.Qt.Orientation.Horizontal))
-        painter.restore()
-class CustomHeaderView4(QtWidgets.QHeaderView):
-    def paintSection(self, painter, rect, logicalIndex):
-        painter.save()
-        painter.fillRect(rect, QtGui.QColor("white"))
-        painter.setPen(QtGui.QColor("black"))
-        painter.drawText(rect, QtCore.Qt.AlignmentFlag.AlignCenter, str(table_view.model().headerData(logicalIndex, QtCore.Qt.Orientation.Vertical)))
-        painter.restore()
-
-
-
-def change_to_darkmode(window,table_view,textBrowserInfo):
-    window.setStyleSheet("""
-            background-color: #262626;
-            color: white;
-            font-family: Titillium;
-            font-size: 14px;
-
-        }
-            """)
-    table_view.setStyleSheet("""
-            background-color: #262626;
-            color: white;
-            font-family: Titillium;
-            font-size: 18px;
-
-        }
-            """)
-
-    hor_header = CustomHeaderView(QtCore.Qt.Orientation.Horizontal)
-    ver_header = CustomHeaderView2(QtCore.Qt.Orientation.Vertical)
-    table_view.setHorizontalHeader(hor_header)
-    table_view.setVerticalHeader(ver_header)
-    model = table_view.model()
-
-    for row in range(model.rowCount()):
-        for column in range(model.columnCount()):
-            item = model.item(row, column)
-            item.setForeground(QtGui.QColor("white"))
-
-    table_view.horizontalHeader().setVisible(True)
-    table_view.verticalHeader().setVisible(True)
-    textBrowserInfo.setStyleSheet("font-size: 24px;")
-
-def change_to_lightmode(window,table_view):
-    window.setStyleSheet("")
-    hor_header = CustomHeaderView3(QtCore.Qt.Orientation.Horizontal)
-    ver_header = CustomHeaderView4(QtCore.Qt.Orientation.Vertical)
-    table_view.setHorizontalHeader(hor_header)
-    table_view.setVerticalHeader(ver_header)
-    table_view.horizontalHeader().setVisible(True)
-    table_view.verticalHeader().setVisible(True)
-    table_view.setStyleSheet("""
-            background-color: #fffff;
-            color: black;
-            font-family: Titillium;
-            font-size: 18px;
-
-        }
-            """)
-    model = table_view.model()
-
-    for row in range(model.rowCount()):
-        for column in range(model.columnCount()):
-            item = model.item(row, column)
-            item.setForeground(QtGui.QColor("black"))
-
-
-
-
-
-# wyświetlanie informacji o danej kolumnie
-
-def switch_dictionary(column_name): #git
-    switcher = {
-        "animal name": "The name of the animal",
-        "hair": "Whether the animal has hair or not",
-        "feathers": "Whether the animal has feathers or not",
-        "eggs": "Whether the animal lays eggs or not",
-        "milk": "Whether the animal produces milk or not",
-        "airborne": "Whether the animal can fly or not",
-        "aquatic": "Whether the animal lives in water or not",
-        "predator": "Whether the animal is a predator or not",
-        "toothed": "Whether the animal has teeth or not",
-        "backbone": "Whether the animal has a backbone or not",
-        "breathes": "Whether the animal breathes air or not",
-        "venomous": "Whether the animal is venomous or not",
-        "fins": "Whether the animal has fins or not",
-        "legs": "Number of legs that the animal has",
-        "tail": "Whether the animal has a tail or not",
-        "domestic": "Whether the animal is domesticated or not",
-        "catsize": "Whether the animal is cat-sized or not",
-        "type": "Type of animal (mammal, bird, reptile, etc.)"
-    }
-    return switcher.get(column_name, "No info about Column")
-
-
-def display_column_info(index,table_view,textBrowserInfo): #git
-    column_name = table_view.model().headerData(index.column(), Qt.Orientation.Horizontal)
-    textBrowserInfo.setText(switch_dictionary(column_name))
-    textBrowserInfo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-
-
-# Generowanie wykresów:
 def generate_comparison_plot(tableView): #git
     model = tableView.model()
 
@@ -456,13 +279,75 @@ def generate_comparison_plot(tableView): #git
 
     plt.show()
 
+def generate_correlation_heatmap(tableView): #git
+    model = tableView.model()
+
+    data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
+
+    for column_index in selected_columns:
+        # Pobierz nazwę wybranej kolumny z QTableView
+        column_name = model.headerData(column_index, Qt.Orientation.Horizontal)
+
+        # Pobierz dane z wybranej kolumny
+        column_data = [model.data(model.index(row, column_index)) for row in range(model.rowCount())]
+
+        # Dodaj dane do obiektu DataFrame
+        data[column_name] = column_data
+
+    # Konwertuj dane na typ numeryczny
+    data = data.apply(pd.to_numeric, errors='coerce')
+
+    # Oblicz macierz korelacji
+    corr_matrix = data.corr()
+
+    # Wygeneruj heatmapę korelacji
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm')
+    plt.title('Heatmap - Korelacja')
+    plt.show()
 
 
+
+def generate_distribution_plot(tableView): #git
+    model = tableView.model()
+
+    data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
+
+    for column_index in selected_columns:
+        # Pobierz nazwę wybranej kolumny z QTableView
+        column_name = model.headerData(column_index, Qt.Orientation.Horizontal)
+
+        # Pobierz dane z wybranej kolumny
+        column_data = [model.data(model.index(row, column_index)) for row in range(model.rowCount())]
+
+        # Dodaj dane do obiektu DataFrame
+        data[column_name] = column_data
+
+    # Konwertuj dane na typ numeryczny
+    data = data.apply(pd.to_numeric , errors='coerce')
+
+    # Sumuj wartości dla każdej kolumny
+    counts = data.sum()
+
+    # Wygeneruj wykres kołowy
+    plt.pie(counts.values, labels=counts.index, autopct='%1.1f%%')
+    plt.axis('equal')
+
+    # Skonstruuj tytuł wykresu na podstawie nazw zaznaczonych atrybutów
+    title = "Rozkład "
+    for column_name in data.columns:
+        title += str(column_name) + " + "
+
+    title = title[:-3]  # Usuń ostatni znak "+" i spacje
+
+    plt.title(title)
+
+    plt.show()
 
 
 ##########################
 
-##Obsługiwanie paska menu
+## Obsługiwanie paska menu:
 def wczytaj_plik_csv(comboBoxAtrybut1,comboBoxAtrybut2,comboBoxAtrybutClass,tableView):
     global df
     global df_with_labels
@@ -607,110 +492,6 @@ def reczne_wpisywanie_naglowkow(comboBoxAtrybut1,comboBoxAtrybut2,comboBoxAtrybu
     comboBoxAtrybut2.addItems([str(x) for x in labels])
     comboBoxAtrybutClass.addItems([str(x)for x in labels])
 
-
-
-
-
-def generate_correlation_heatmap(tableView): #git
-    model = tableView.model()
-
-    data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
-
-    for column_index in selected_columns:
-        # Pobierz nazwę wybranej kolumny z QTableView
-        column_name = model.headerData(column_index, Qt.Orientation.Horizontal)
-
-        # Pobierz dane z wybranej kolumny
-        column_data = [model.data(model.index(row, column_index)) for row in range(model.rowCount())]
-
-        # Dodaj dane do obiektu DataFrame
-        data[column_name] = column_data
-
-    # Konwertuj dane na typ numeryczny
-    data = data.apply(pd.to_numeric, errors='coerce')
-
-    # Oblicz macierz korelacji
-    corr_matrix = data.corr()
-
-    # Wygeneruj heatmapę korelacji
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm')
-    plt.title('Heatmap - Korelacja')
-    plt.show()
-
-
-
-def generate_distribution_plot(tableView): #git
-    model = tableView.model()
-
-    data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
-
-    for column_index in selected_columns:
-        # Pobierz nazwę wybranej kolumny z QTableView
-        column_name = model.headerData(column_index, Qt.Orientation.Horizontal)
-
-        # Pobierz dane z wybranej kolumny
-        column_data = [model.data(model.index(row, column_index)) for row in range(model.rowCount())]
-
-        # Dodaj dane do obiektu DataFrame
-        data[column_name] = column_data
-
-    # Konwertuj dane na typ numeryczny
-    data = data.apply(pd.to_numeric , errors='coerce')
-
-    # Sumuj wartości dla każdej kolumny
-    counts = data.sum()
-
-    # Wygeneruj wykres kołowy
-    plt.pie(counts.values, labels=counts.index, autopct='%1.1f%%')
-    plt.axis('equal')
-
-    # Skonstruuj tytuł wykresu na podstawie nazw zaznaczonych atrybutów
-    title = "Rozkład "
-    for column_name in data.columns:
-        title += str(column_name) + " + "
-
-    title = title[:-3]  # Usuń ostatni znak "+" i spacje
-
-    plt.title(title)
-
-    plt.show()
-
-
-def calculate_checked_stats(checkBoxMin,checkBoxMax,checkBoxStd,checkBoxMdn,checkBoxMean,textBrowser,tableView):
-    if (checkBoxMin.isChecked() == True):
-        calculate_minimum(textBrowser,tableView)
-    if (checkBoxMax.isChecked() == True):
-        calculate_maximum(textBrowser,tableView)
-    if (checkBoxStd.isChecked() == True):
-        calculate_std(textBrowser,tableView)
-    if (checkBoxMdn.isChecked() == True):
-        calculate_median(textBrowser,tableView)
-    if (checkBoxMean.isChecked() == True):
-        calculate_mean(textBrowser,tableView)
-
-
-# obsługa zaznaczania rzeczy w tabeli
-def handle_selection_changed(QtTableView):
-    global selected_columns
-    global selected_rows
-    selected_indexes = QtTableView.selectionModel().selectedIndexes()
-    selected_columns.clear()
-    selected_rows.clear()
-
-    # Sprawdź, czy liczba kolumn się zmieniła
-    model = QtTableView.model()
-    if model.columnCount() != len(selected_columns):
-        # Zresetuj listę selected_columns
-        selected_columns = set()
-
-    for index in selected_indexes:
-        selected_columns.add(index.column())
-        selected_rows.add(index.row())
-
-
-
-
 def generate_pdf(QtTextBrowser):
     # Wyświetl okno dialogowe do wyboru miejsca zapisu pliku
     file_dialog = QFileDialog()
@@ -746,7 +527,7 @@ def generate_pdf(QtTextBrowser):
         c.save()
 
 
-
+## Sekcja wyświetlania informacji:
 # wyświetlanie informacji o przyciskach:
 def switch_dictionary_buttons(button_name): #git
     switcher = {
@@ -772,4 +553,98 @@ def on_button_enter(event: QEnterEvent, button_name: str, QtTextBrowser): #git
     QtTextBrowser.setText(info)
     QtTextBrowser.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+
+# wyświetlanie informacji o danej kolumnie
+
+def switch_dictionary(column_name): #git
+    switcher = {
+        "animal name": "The name of the animal",
+        "hair": "Whether the animal has hair or not",
+        "feathers": "Whether the animal has feathers or not",
+        "eggs": "Whether the animal lays eggs or not",
+        "milk": "Whether the animal produces milk or not",
+        "airborne": "Whether the animal can fly or not",
+        "aquatic": "Whether the animal lives in water or not",
+        "predator": "Whether the animal is a predator or not",
+        "toothed": "Whether the animal has teeth or not",
+        "backbone": "Whether the animal has a backbone or not",
+        "breathes": "Whether the animal breathes air or not",
+        "venomous": "Whether the animal is venomous or not",
+        "fins": "Whether the animal has fins or not",
+        "legs": "Number of legs that the animal has",
+        "tail": "Whether the animal has a tail or not",
+        "domestic": "Whether the animal is domesticated or not",
+        "catsize": "Whether the animal is cat-sized or not",
+        "type": "Type of animal (mammal, bird, reptile, etc.)"
+    }
+    return switcher.get(column_name, "No info about Column")
+
+
+def display_column_info(index,table_view,textBrowserInfo): #git
+    column_name = table_view.model().headerData(index.column(), Qt.Orientation.Horizontal)
+    textBrowserInfo.setText(switch_dictionary(column_name))
+    textBrowserInfo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+
+# obsługa zaznaczania rzeczy w tabeli
+def handle_selection_changed(QtTableView):
+    global selected_columns
+    global selected_rows
+    selected_indexes = QtTableView.selectionModel().selectedIndexes()
+    selected_columns.clear()
+    selected_rows.clear()
+
+    # Sprawdź, czy liczba kolumn się zmieniła
+    model = QtTableView.model()
+    if model.columnCount() != len(selected_columns):
+        # Zresetuj listę selected_columns
+        selected_columns = set()
+
+    for index in selected_indexes:
+        selected_columns.add(index.column())
+        selected_rows.add(index.row())
+
+## Sekcja styli
+
+#
+def change_to_darkmode(window,table_view,textBrowserInfo):
+    window.setStyleSheet("""
+            background-color: #262626;
+            color: white;
+            font-family: Titillium;
+            font-size: 14px;
+
+        }
+            """)
+    table_view.setStyleSheet("""
+            background-color: #262626;
+            color: white;
+            font-family: Titillium;
+            font-size: 18px;
+
+        }
+            """)
+    table_view.horizontalHeader().setStyleSheet("QHeaderView::section { background-color: #262626; color: white; }")
+    table_view.verticalHeader().setStyleSheet("QHeaderView::section { background-color: #262626; color: white; }")
+
+
+def change_to_lightmode(window,table_view):
+    window.setStyleSheet("")
+    # hor_header = CustomHeaderView3(QtCore.Qt.Orientation.Horizontal)
+    # ver_header = CustomHeaderView4(QtCore.Qt.Orientation.Vertical)
+    # table_view.setHorizontalHeader(hor_header)
+    # table_view.setVerticalHeader(ver_header)
+    table_view.horizontalHeader().setVisible(True)
+    table_view.verticalHeader().setVisible(True)
+    table_view.setStyleSheet("""
+            background-color: #fffff;
+            color: black;
+            font-family: Titillium;
+            font-size: 18px;
+
+        }
+            """)
+
+    table_view.horizontalHeader().setStyleSheet("QHeaderView::section { background-color: #fffff; color: black; }")
+    table_view.verticalHeader().setStyleSheet("QHeaderView::section { background-color: #fffff; color: black; }")
 
