@@ -21,6 +21,21 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 
+# wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas
+df = pd.read_csv('zoo.data', header=None)
+df_with_labels = pd.DataFrame
+df_with_labels = df.copy()
+selected_indexes = set()
+selected_columns = set()
+selected_rows = set()
+# Ustawianie nazw kolumn
+labels = ["animal name", "hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
+          "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
+labels_no_zero_column = ["hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
+                         "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
+# model.setHorizontalHeaderLabels(labels)
+df_with_labels.columns = labels
+
 def is_text_or_number(value):
     try:
         float(value)  # Spróbuj przekształcić wartość na liczbę zmiennoprzecinkową
@@ -42,25 +57,38 @@ def code_data(df):
     return df_encoded
 def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
     # Przygotowanie danych
+    global delete_col
     isTextOrNumber = is_text_or_number(PyQtComboBox.currentText())
     if(isTextOrNumber == True):
-        temp_column = df_with_labels[(PyQtComboBox.currentText())]
+        temp_column = df_with_labels[PyQtComboBox.currentText().strip()]
+        delete_col = PyQtComboBox.currentText()
     if(isTextOrNumber == False):
-        temp_column = df_with_labels[int((PyQtComboBox.currentText()))]
+        temp_column = df_with_labels[int(PyQtComboBox.currentText())]
+        delete_col = int(PyQtComboBox.currentText())-1
 
-    print(temp_column)
+
+
+
+
     # print(type(PyQtComboBox.currentText()))
     if temp_column.dtype == 'object' or temp_column.dtype == 'int64':
         czy_ma_kolumne = False
         df_class_init = pd.DataFrame()
+
         for column in selected_columns:
             nazwa_kolumny = df_with_labels.columns[column]
             df_class_init[nazwa_kolumny] = df_with_labels.iloc[:, column]
+
+
         for i in df_class_init.columns:
-            if i == PyQtComboBox.currentText():
+            if i == delete_col:
                 czy_ma_kolumne = True
+
         if czy_ma_kolumne:
-            df_class_init = df_class_init.drop(temp_column, axis=1)
+            if (isTextOrNumber == True):
+                df_class_init = df_class_init.drop(delete_col, axis=1)
+            else:
+                df_class_init = df_class_init.drop(df_class_init.columns[delete_col], axis=1)
         df_class_init = code_data(df_class_init)
         predict_column = temp_column
         X_train, X_test, y_train, y_test = train_test_split(df_class_init, predict_column, test_size=0.1, random_state=42)
@@ -230,13 +258,7 @@ def calculate_coorelation(comboBoxAtrybut1, comboBoxAtrybut2,PyQtTextBrowser,tab
 
 
 
-# wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas
-df = pd.read_csv('zoo.data', header=None)
-df_with_labels = pd.DataFrame
-df_with_labels = df.copy()
-selected_indexes = set()
-selected_columns = set()
-selected_rows = set()
+
 # utworzenie obiektu QTableView
 # table_view = QTableView()
 
@@ -250,13 +272,7 @@ selected_rows = set()
 
 # table_view.setModel(model)
 
-# Ustawianie nazw kolumn
-labels = ["animal name", "hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
-          "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
-labels_no_zero_column = ["hair", "feathers", "eggs", "milk", "airborne", "aquatic", "predator", "toothed", "backbone",
-                         "breathes", "venomous", "fins", "legs", "tail", "domestic", "catsize", "type"]
-# model.setHorizontalHeaderLabels(labels)
-df_with_labels.columns = labels
+
 
 # # Liczba kolumn minus 1
 # x = len(df.columns) - 1
@@ -405,15 +421,6 @@ def display_column_info(index,table_view,textBrowserInfo): #git
 
 
 
-# table_view.setMouseTracking(True)
-# table_view.entered.connect(display_column_info)
-#
-# # Comboboxy pozwalające na wybór atrybutów danych do porównania
-#
-# self.comboBoxAtrybut1.addItems(labels_no_zero_column)
-# self.comboBoxAtrybut2.addItems(labels_no_zero_column)
-# self.comboBoxAtrybutClass.addItems(labels_no_zero_column)
-
 # Generowanie wykresów:
 def generate_comparison_plot(tableView): #git
     model = tableView.model()
@@ -449,11 +456,7 @@ def generate_comparison_plot(tableView): #git
 
     plt.show()
 
-#
-#
-#
-# self.comboBoxAtrybut1.setCurrentIndex(3)
-# self.comboBoxAtrybut2.setCurrentIndex(0)
+
 
 
 
@@ -707,10 +710,6 @@ def handle_selection_changed(QtTableView):
 
 
 
-# table_view.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
-# self.selection_model = table_view.selectionModel()
-# self.selection_model.selectionChanged.connect(handle_selection_changed)
-
 
 def generate_pdf(QtTextBrowser):
     # Wyświetl okno dialogowe do wyboru miejsca zapisu pliku
@@ -747,13 +746,6 @@ def generate_pdf(QtTextBrowser):
         c.save()
 
 
-# obsługa paska menu:
-# self.actionWczytaj_z_CSV.triggered.connect(wczytaj_plik_csv)
-# self.actionZapisz_do_CSV.triggered.connect(zapisz_plikCSV)
-# self.actionWprowadzNagl.triggered.connect(reczne_wpisywanie_naglowkow)
-# self.actionGenerateResultsPDF.triggered.connect(generate_pdf)
-# self.actionCiemny.triggered.connect(change_to_darkmode)
-# self.actionJasny.triggered.connect(change_to_lightmode)
 
 # wyświetlanie informacji o przyciskach:
 def switch_dictionary_buttons(button_name): #git
@@ -781,28 +773,3 @@ def on_button_enter(event: QEnterEvent, button_name: str, QtTextBrowser): #git
     QtTextBrowser.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
-# # Obsługa wyświetlania informacji o przyciskach:
-# self.pushButtonMinimum.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonMinimum.objectName()))
-# self.pushButtonMaximum.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonMaximum.objectName()))
-# self.pushButtonStd.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonStd.objectName()))
-# self.pushButtonMedian.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonMedian.objectName()))
-# self.pushButtonMean.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonMean.objectName()))
-# self.pushButtonClear.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonClear.objectName()))
-# self.pushButtonCalcChecked.enterEvent = partial(on_button_enter,
-#                                                 button_name=str(self.pushButtonCalcChecked.objectName()))
-# self.pushButtonKoorelacja.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonKoorelacja.objectName()))
-# self.pushButtonPorownaj.enterEvent = partial(on_button_enter, button_name=str(self.pushButtonPorownaj.objectName()))
-# self.pushButtonDystrybucja.enterEvent = partial(on_button_enter,
-#                                                 button_name=str(self.pushButtonDystrybucja.objectName()))
-# self.pushButtonHeatmap.enterEvent = partial(on_button_enter,
-#                                             button_name=str(self.pushButtonHeatmap.objectName()))
-# self.pushButtonClass.enterEvent = partial(on_button_enter,
-#                                           button_name=str(self.pushButtonClass.objectName()))
-# Wywołanie funkcji
-# Classificate_selected_data()
-
-
-
-# # włączanie okna aplikacji:
-# window.show()
-# sys.exit( app.exec())
