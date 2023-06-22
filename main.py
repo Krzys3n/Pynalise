@@ -199,7 +199,7 @@ def calculate_mean(QtTextBrowser, QtTableView): #git
     try:
         for column in selected_columns:
             # Oblicz średnią z wybranej kolumny
-            mean = df[column].mean()
+            mean = (df[column].mean())
 
             # Konwertuj wartość na string
             mean_str = str(mean)
@@ -348,7 +348,7 @@ def generate_distribution_plot(tableView): #git
 ##########################
 
 ## Obsługiwanie paska menu:
-def wczytaj_plik_csv(comboBoxAtrybut1,comboBoxAtrybut2,comboBoxAtrybutClass,tableView):
+def load_CSV_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tableView):
     global df
     global df_with_labels
     msg_box = QMessageBox()
@@ -416,7 +416,8 @@ def wczytaj_plik_csv(comboBoxAtrybut1,comboBoxAtrybut2,comboBoxAtrybutClass,tabl
     selection_model.selectionChanged.connect(lambda:handle_selection_changed(tableView))
 
 
-def zapisz_plikCSV():
+def save_to_CSV():
+
     # Okno dialogowe z pytaniem o zapisanie z nazwami kolumn lub bez
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Zapisywanie pliku CSV")
@@ -445,11 +446,42 @@ def zapisz_plikCSV():
     if filename:
         df_with_labels.to_csv(filename, index=False, header=header)
 
+import pandas as pd
+from PyQt6 import QtCore
 
-def reczne_wpisywanie_naglowkow(comboBoxAtrybut1,comboBoxAtrybut2,comboBoxAtrybutClass, tableView):
+def retrieveData(tableView):
+    global df, df_with_labels, labels
+    model = tableView.model()
+    rows = model.rowCount()
+    cols = model.columnCount()
+
+    data = []
+    for row in range(rows):
+        row_data = []
+        for col in range(cols):
+            index = model.index(row, col)
+            value = model.data(index, QtCore.Qt.ItemDataRole.DisplayRole)
+            if(is_text_or_number(value)==False):
+                value = float(value)
+            row_data.append(value)
+        data.append(row_data)
+
+    df = pd.DataFrame(data)
+    df_with_labels = pd.DataFrame(data)
+    df_with_labels.columns = labels
+
+    # Przypisanie odpowiednich typów danych
+    # df = df.astype(int, errors='ignore')  # Przypisanie typu int, pomijając błędy
+    # df_with_labels['column_name'] = df_with_labels['column_name'].astype(str)  # Przypisanie typu str dla konkretnej kolumny
+
+    print(df.dtypes)
+    print(df_with_labels.dtypes)
+
+
+def add_headers_manually(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tableView):
     global df
     global df_with_labels
-    labels = []
+    global labels
     for i in df.columns:
         dialog = QDialog()
         dialog.setWindowTitle("Nazwa nagłówka " + str(i))

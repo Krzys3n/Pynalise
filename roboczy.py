@@ -2,8 +2,8 @@ import sys
 from functools import partial
 
 import pandas as pd
-from PyQt6 import QtWidgets
-from PyQt6.QtCore import QSize, Qt
+from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtCore import QSize, Qt, QThread, QItemSelectionModel
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QEnterEvent
 from PyQt6.QtWidgets import QTableView
 
@@ -13,25 +13,97 @@ from main_ui import Ui_MainWindow
 from LoginWidget import LoginWidget
 from SignUpWidget import SignUpWidget
 
-class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+from enum import Enum
 
+
+# Definicja enuma
+class Role(Enum):
+    ADMIN = 1
+    USER = 2
+    GUEST = 3
+
+
+class DataRetrievalThread(QThread):
+    def __init__(self, tableView):
+        super().__init__()
+        self.i = 1
+        self.tableView = tableView
+
+    def run(self):
+        while True:
+            # Wywołanie funkcji retrieveData()
+            main.retrieveData(self.tableView)
+
+            print("Wątek "+str(self.i))
+
+            # Zaczekaj przed kolejnym wywołaniem
+            self.msleep(1000)  # Czas oczekiwania w milisekundach
+            self.i+=1
+
+class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    from PyQt6.QtCore import Qt
+
+    from PyQt6.QtCore import Qt
+
+    def search(self, value):
+        # Clear current selection.
+        self.tableView.clearSelection()
+
+        if not value:
+            # Empty value, don't search.
+            return
+
+        model = self.tableView.model()
+        rows = model.rowCount()
+        cols = model.columnCount()
+        matching_indexes = []
+
+        for row in range(rows):
+            for col in range(cols):
+                index = model.index(row, col)
+                item = model.data(index, Qt.ItemDataRole.DisplayRole)
+                if str(item) == value:
+                    matching_indexes.append(index)
+
+        if matching_indexes:
+            # Select all matching indexes.
+            selection_model = self.tableView.selectionModel()
+            for index in matching_indexes:
+                selection_model.select(index, QItemSelectionModel.SelectionFlag.Select)
     def __init__(self, *args, obj=None, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
 
+        print(LoginWidget.role)
+
+        if (LoginWidget.role == Role.GUEST):
+            print("Zalogowany: Gość")
+            self.menuMenu.setVisible(False)
+
+            self.actionWczytaj_z_CSV.setVisible(False)
+            self.actionZapisz_do_CSV.setVisible(False)
+            self.actionGenerateResultsPDF.setVisible(False)
+            self.actionWprowadzNagl.setVisible(False)
+
         # przyciski statystyczne: Obsługa:
-        self.pushButtonMinimum.clicked.connect(lambda: main.calculate_minimum(self.textBrowser,self.tableView))
-        self.pushButtonMaximum.clicked.connect(lambda: main.calculate_maximum(self.textBrowser,self.tableView))
+        # self.pushButtonMinimum.clicked.connect(lambda: main.calculate_minimum(self.textBrowser, self.tableView))
+        self.pushButtonMinimum.clicked.connect(lambda:self.search("1"))
+        self.pushButtonMaximum.clicked.connect(lambda: main.calculate_maximum(self.textBrowser, self.tableView))
         self.pushButtonClear.clicked.connect(lambda: self.textBrowser.clear())
-        self.pushButtonMean.clicked.connect(lambda: main.calculate_mean(self.textBrowser,self.tableView))
-        self.pushButtonStd.clicked.connect(lambda: main.calculate_std(self.textBrowser,self.tableView))
-        self.pushButtonMedian.clicked.connect(lambda: main.calculate_median(self.textBrowser,self.tableView))
+        self.pushButtonMean.clicked.connect(lambda: main.calculate_mean(self.textBrowser, self.tableView))
+        self.pushButtonStd.clicked.connect(lambda: main.calculate_std(self.textBrowser, self.tableView))
+        self.pushButtonMedian.clicked.connect(lambda: main.calculate_median(self.textBrowser, self.tableView))
         self.pushButtonDystrybucja.clicked.connect(lambda: main.generate_distribution_plot(self.tableView))
-        self.pushButtonKoorelacja.clicked.connect(lambda: main.calculate_coorelation(self.comboBoxAtrybut1,self.comboBoxAtrybut2,self.textBrowser,self.tableView))
-        self.pushButtonCalcChecked.clicked.connect(lambda:main.calculate_checked_stats(self.checkBoxMin,self.checkBoxMax,self.checkBoxStd,self.checkBoxMdn,self.checkBoxMean,self.textBrowser,self.tableView))
+        self.pushButtonKoorelacja.clicked.connect(
+            lambda: main.calculate_coorelation(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.textBrowser,
+                                               self.tableView))
+        self.pushButtonCalcChecked.clicked.connect(
+            lambda: main.calculate_checked_stats(self.checkBoxMin, self.checkBoxMax, self.checkBoxStd, self.checkBoxMdn,
+                                                 self.checkBoxMean, self.textBrowser, self.tableView))
         self.pushButtonHeatmap.clicked.connect(lambda: main.generate_correlation_heatmap(self.tableView))
-        self.pushButtonClass.clicked.connect(lambda: main.classificate_selected_data(self.comboBoxAtrybutClass,self.textBrowser))
-        self.pushButtonPorownaj.clicked.connect(lambda:main.generate_comparison_plot(self.tableView))
+        self.pushButtonClass.clicked.connect(
+            lambda: main.classificate_selected_data(self.comboBoxAtrybutClass, self.textBrowser))
+        self.pushButtonPorownaj.clicked.connect(lambda: main.generate_comparison_plot(self.tableView))
         # wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas
         df = pd.read_csv('zoo.data', header=None)
         df_with_labels = pd.DataFrame
@@ -77,21 +149,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # wyświetlanie informacji o kolumnie w tabeli
         table_view.setMouseTracking(True)
-        table_view.entered.connect(partial(main.display_column_info,table_view = self.tableView,textBrowserInfo = self.textBrowserInfo))
+        table_view.entered.connect(
+            partial(main.display_column_info, table_view=self.tableView, textBrowserInfo=self.textBrowserInfo))
+
+        # Wątek odpowiadający za aktualizację danych w DF
+        self.thread = DataRetrievalThread(self.tableView)
+        self.thread.start()
+
 
         # obsługa paska menu
-        self.actionWczytaj_z_CSV.triggered.connect(lambda:main.wczytaj_plik_csv(self.comboBoxAtrybut1,self.comboBoxAtrybut2,self.comboBoxAtrybutClass,self.tableView))
-        self.actionZapisz_do_CSV.triggered.connect(lambda:main.zapisz_plikCSV())
-        self.actionWprowadzNagl.triggered.connect(lambda:main.reczne_wpisywanie_naglowkow(self.comboBoxAtrybut1,self.comboBoxAtrybut2,self.comboBoxAtrybutClass,self.tableView))
+        self.actionWczytaj_z_CSV.triggered.connect(
+            lambda: main.load_CSV_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
+                                       self.tableView))
+        self.actionZapisz_do_CSV.triggered.connect(lambda: main.save_to_CSV())
+        self.actionWprowadzNagl.triggered.connect(
+            lambda: main.add_headers_manually(self.comboBoxAtrybut1, self.comboBoxAtrybut2,
+                                              self.comboBoxAtrybutClass, self.tableView))
         self.actionGenerateResultsPDF.triggered.connect(lambda: main.generate_pdf(self.textBrowser))
-        self.actionCiemny.triggered.connect(lambda:main.change_to_darkmode(self,self.tableView,self.textBrowserInfo))
-        self.actionJasny.triggered.connect(lambda:main.change_to_lightmode(self,self.tableView))
-
+        self.actionCiemny.triggered.connect(lambda: main.change_to_darkmode(self, self.tableView, self.textBrowserInfo))
+        self.actionJasny.triggered.connect(lambda: main.change_to_lightmode(self, self.tableView))
 
         # Obsługa wyświetlania informacji o przyciskach:
         self.pushButtonMinimum.enterEvent = partial(main.on_button_enter,
-                                                   button_name=str(self.pushButtonMinimum.objectName()),
-                                                   QtTextBrowser=self.textBrowserInfo)
+                                                    button_name=str(self.pushButtonMinimum.objectName()),
+                                                    QtTextBrowser=self.textBrowserInfo)
         self.pushButtonMaximum.enterEvent = partial(main.on_button_enter,
                                                     button_name=str(self.pushButtonMaximum.objectName()),
                                                     QtTextBrowser=self.textBrowserInfo)
@@ -129,36 +210,48 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Wyświetlanie informacji na temat przycisków - pobieranie danych na temat zaznaczonych kolumn/wierszy/indeksów:
         table_view.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
         self.selection_model = table_view.selectionModel()
-        self.selection_model.selectionChanged.connect(lambda:main.handle_selection_changed(table_view))
-
-
+        self.selection_model.selectionChanged.connect(lambda: main.handle_selection_changed(table_view))
 
 
 class LoginWidget(QtWidgets.QWidget, LoginWidget):
-    def __init__(self, main_window,sign_up_window, *args, obj=None, **kwargs):
+    role = Role.GUEST
+
+    def __init__(self, sign_up_window, *args, obj=None, **kwargs):
         super(LoginWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
-        self.main_window = main_window  # Przechowaj referencję do obiektu MainWindow
+
         self.sign_up_window = sign_up_window
         self.pushButtonSignIn.clicked.connect(self.signIn)
         self.pushButtonSignUp.clicked.connect(self.signUp)
+        self.pushButtonGuest.clicked.connect(self.guestLogIn)
 
-
-    def signIn(self):
+    def signIn(self, main_window):
         if self.lineEditLogin.text() == "3":
-            self.main_window.show()  # Pokaż główne okno
-            self.hide()  # Ukryj okno logowania
+            LoginWidget.role = Role.ADMIN
         else:
-            print("Niezalogowano")
+            LoginWidget.role = Role.GUEST
+
+        main_window = MainWindow()
+        main_window.show()  # Pokaż główne okno
+        self.hide()  # Ukryj okno logowania
+        print(LoginWidget.role)
+
     def signUp(self):
         self.sign_up_window.show()  # Pokaż główne okno
         self.hide()  # Ukryj okno logowania
+
+    def guestLogIn(self):
+        self.hide()
+        main_window = MainWindow()
+        main_window.show()  # Pokaż główne okno
+
 
 class SignUpWidget(QtWidgets.QWidget, SignUpWidget):
     @staticmethod
     def setLoginWindow(login_window):
         LoginWidget.sign_up_window = login_window
-    def __init__(self,  *args, obj=None, **kwargs):
+
+    def __init__(self, *args, obj=None, **kwargs):
         super(SignUpWidget, self).__init__(*args, **kwargs)
         self.setupUi(self)
         self.pushButtonSign.clicked.connect(self.signUp)
@@ -172,11 +265,8 @@ class SignUpWidget(QtWidgets.QWidget, SignUpWidget):
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 
-    main_window = MainWindow()
     sign_up_window = SignUpWidget()
-    login_window = LoginWidget(main_window,sign_up_window)  # Przekazanie referencji do obiektu MainWindow
+    login_window = LoginWidget(sign_up_window)
     login_window.show()
-
-
 
     sys.exit(app.exec())
