@@ -10,7 +10,7 @@ Wczytywanie danych z pliku
 Wyświetlanie informacji na temat zwierząt
 Wykresy dotyczące zebranych danych
 Wyznaczanie korelacji między atrybutami
-Proste klasyfikacje danych
+klasyfikowanie danych
 Obliczanie miar statystycznych
 
 ## Technologie
