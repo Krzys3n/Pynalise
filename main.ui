@@ -288,6 +288,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionWprowadzNagl"/>
     <addaction name="actionGenerateResultsPDF"/>
     <addaction name="menuZmie_motyw"/>
+    <addaction name="actionWyszukaj"/>
    </widget>
    <addaction name="menuMenu"/>
   </widget>
@@ -320,6 +321,11 @@ p, li { white-space: pre-wrap; }
   <action name="actionCiemny">
    <property name="text">
     <string>Ciemny</string>
+   </property>
+  </action>
+  <action name="actionWyszukaj">
+   <property name="text">
+    <string>Wyszukaj</string>
    </property>
   </action>
  </widget>

@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import QApplication, QTableView, QFileDialog, QMessageBox, 
 import pandas as pd
 import matplotlib.pyplot as plt
 from PyQt6.uic import loadUiType
-from matplotlib.backends.backend_qt import MainWindow
+
 from reportlab.pdfgen import canvas
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QTextBrowser
 from PyQt6.QtGui import QEnterEvent
@@ -70,10 +70,10 @@ def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
         temp_column = df_with_labels[PyQtComboBox.currentText().strip()]
         delete_col = PyQtComboBox.currentText()
     if(isTextOrNumber == False):
-        temp_column = df_with_labels[int(PyQtComboBox.currentText())]
-        delete_col = int(PyQtComboBox.currentText())-1
+        temp_column = df[int(PyQtComboBox.currentText())]
+        delete_col = int(PyQtComboBox.currentText())
 
-    if temp_column.dtype == 'object' or temp_column.dtype == 'int64':
+    if temp_column.dtype == 'object' or temp_column.dtype == 'int64'  or temp_column.dtype == 'float64' :
         czy_ma_kolumne = False
         df_class_init = pd.DataFrame()
 
@@ -462,7 +462,7 @@ def retrieveData(tableView):
             index = model.index(row, col)
             value = model.data(index, QtCore.Qt.ItemDataRole.DisplayRole)
             if(is_text_or_number(value)==False):
-                value = float(value)
+                value = int(value)
             row_data.append(value)
         data.append(row_data)
 

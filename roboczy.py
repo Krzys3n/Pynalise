@@ -5,7 +5,7 @@ import pandas as pd
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtCore import QSize, Qt, QThread, QItemSelectionModel
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QEnterEvent
-from PyQt6.QtWidgets import QTableView
+from PyQt6.QtWidgets import QTableView, QDialog, QLineEdit, QPushButton, QVBoxLayout
 
 import main
 
@@ -42,10 +42,36 @@ class DataRetrievalThread(QThread):
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     from PyQt6.QtCore import Qt
-
+    print(main.df.dtypes)
+    print(main.df_with_labels.dtypes)
     from PyQt6.QtCore import Qt
 
     def search(self, value):
+        ilosc_szuk= 0
+        #okno dialogowo:
+
+        dialog = QDialog()
+        dialog.setWindowTitle("Wpisz szukaną wartość: " )
+        dialog.header_field = QLineEdit()
+        ok_button = QPushButton("Szukaj")
+        ok_button.clicked.connect(dialog.accept)
+        anuluj_button = QPushButton("Anuluj")
+        anuluj_button.clicked.connect(dialog.reject)  # Przerwanie dialogu po kliknięciu przycisku "Anuluj"
+        anuluj_button.setVisible(False)
+        layout = QVBoxLayout()
+        layout.addWidget(dialog.header_field)
+        layout.addWidget(ok_button)
+        layout.addWidget(anuluj_button)
+        dialog.setLayout(layout)
+
+        if dialog.exec() == 1:
+            value = dialog.header_field.text()
+
+        else:
+            return 0
+
+
+
         # Clear current selection.
         self.tableView.clearSelection()
 
@@ -63,8 +89,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 index = model.index(row, col)
                 item = model.data(index, Qt.ItemDataRole.DisplayRole)
                 if str(item) == value:
+                    ilosc_szuk +=1
                     matching_indexes.append(index)
-
+        self.textBrowser.append("Ilość wyszukań wartości " + str(value) + " w tabeli: " + str(ilosc_szuk))
         if matching_indexes:
             # Select all matching indexes.
             selection_model = self.tableView.selectionModel()
@@ -86,8 +113,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.actionWprowadzNagl.setVisible(False)
 
         # przyciski statystyczne: Obsługa:
-        # self.pushButtonMinimum.clicked.connect(lambda: main.calculate_minimum(self.textBrowser, self.tableView))
-        self.pushButtonMinimum.clicked.connect(lambda:self.search("1"))
+        self.pushButtonMinimum.clicked.connect(lambda: main.calculate_minimum(self.textBrowser, self.tableView))
+        # self.pushButtonMinimum.clicked.connect(lambda:self.search("1"))
         self.pushButtonMaximum.clicked.connect(lambda: main.calculate_maximum(self.textBrowser, self.tableView))
         self.pushButtonClear.clicked.connect(lambda: self.textBrowser.clear())
         self.pushButtonMean.clicked.connect(lambda: main.calculate_mean(self.textBrowser, self.tableView))
@@ -168,6 +195,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionGenerateResultsPDF.triggered.connect(lambda: main.generate_pdf(self.textBrowser))
         self.actionCiemny.triggered.connect(lambda: main.change_to_darkmode(self, self.tableView, self.textBrowserInfo))
         self.actionJasny.triggered.connect(lambda: main.change_to_lightmode(self, self.tableView))
+        self.actionWyszukaj.triggered.connect(lambda: self.search('1'))
 
         # Obsługa wyświetlania informacji o przyciskach:
         self.pushButtonMinimum.enterEvent = partial(main.on_button_enter,
