@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Analiza Danych Zoo</string>
+   <string>PyNalise</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_5">
@@ -37,7 +37,7 @@
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:14pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt;&quot;&gt;Okno informacji&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;tw-target-text-container&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'inherit'; font-size:28px;&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'inherit'; font-size:28px;&quot;&gt;nformation window&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </item>
@@ -52,14 +52,14 @@ p, li { white-space: pre-wrap; }
       <item row="0" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Klasyfikacja:</string>
+         <string>Classyfication:</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QPushButton" name="pushButtonClass">
         <property name="text">
-         <string>Klasyfikacja</string>
+         <string>Classificate</string>
         </property>
        </widget>
       </item>
@@ -73,7 +73,7 @@ p, li { white-space: pre-wrap; }
       <item row="1" column="2">
        <widget class="QPushButton" name="pushButtonKoorelacja">
         <property name="text">
-         <string>Oblicz Koorelację</string>
+         <string>Count Coorelation</string>
         </property>
        </widget>
       </item>
@@ -83,7 +83,7 @@ p, li { white-space: pre-wrap; }
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Koorelacja:</string>
+         <string>Coorelation:</string>
         </property>
        </widget>
       </item>
@@ -94,28 +94,28 @@ p, li { white-space: pre-wrap; }
       <item row="1" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Wykresy:</string>
+         <string>Plots:</string>
         </property>
        </widget>
       </item>
       <item row="2" column="0">
        <widget class="QPushButton" name="pushButtonPorownaj">
         <property name="text">
-         <string>Wykres Zliczeń</string>
+         <string>Generate Count Plot</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
        <widget class="QPushButton" name="pushButtonDystrybucja">
         <property name="text">
-         <string>Wykres Dystrybucji</string>
+         <string>Generate Distribution Plot</string>
         </property>
        </widget>
       </item>
       <item row="2" column="2">
        <widget class="QPushButton" name="pushButtonHeatmap">
         <property name="text">
-         <string>Wykres Korelacji</string>
+         <string>Generate Coorelation Plot</string>
         </property>
        </widget>
       </item>
@@ -126,7 +126,7 @@ p, li { white-space: pre-wrap; }
       <item row="1" column="5">
        <widget class="QPushButton" name="pushButtonCalcChecked">
         <property name="text">
-         <string>Wyznacz zaznaczone</string>
+         <string>Calculate Selected</string>
         </property>
        </widget>
       </item>
@@ -181,7 +181,7 @@ p, li { white-space: pre-wrap; }
       <item row="2" column="2">
        <widget class="QPushButton" name="pushButtonStd">
         <property name="text">
-         <string>Odchylenie Standardowe</string>
+         <string>Standard Deviation</string>
         </property>
        </widget>
       </item>
@@ -195,21 +195,21 @@ p, li { white-space: pre-wrap; }
       <item row="2" column="4">
        <widget class="QPushButton" name="pushButtonMean">
         <property name="text">
-         <string>średnia arytmetyczna</string>
+         <string>Arithmetic Average</string>
         </property>
        </widget>
       </item>
       <item row="2" column="3">
        <widget class="QPushButton" name="pushButtonMedian">
         <property name="text">
-         <string>Mediana</string>
+         <string>Median</string>
         </property>
        </widget>
       </item>
       <item row="2" column="5">
        <widget class="QPushButton" name="pushButtonClear">
         <property name="text">
-         <string>Wyczyść</string>
+         <string>Clear</string>
         </property>
        </widget>
       </item>
@@ -255,7 +255,7 @@ p, li { white-space: pre-wrap; }
       <item row="0" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Statsy:</string>
+         <string>Stats:</string>
         </property>
        </widget>
       </item>
@@ -274,17 +274,32 @@ p, li { white-space: pre-wrap; }
    </property>
    <widget class="QMenu" name="menuMenu">
     <property name="title">
-     <string>Plik</string>
+     <string>File</string>
     </property>
     <widget class="QMenu" name="menuZmie_motyw">
      <property name="title">
-      <string>Zmień motyw</string>
+      <string>Change theme</string>
      </property>
      <addaction name="actionJasny"/>
      <addaction name="actionCiemny"/>
     </widget>
-    <addaction name="actionWczytaj_z_CSV"/>
-    <addaction name="actionZapisz_do_CSV"/>
+    <widget class="QMenu" name="menuWczytaj_z_CSV">
+     <property name="title">
+      <string>Load From</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionCSV_load"/>
+     <addaction name="actionJSON_load"/>
+    </widget>
+    <widget class="QMenu" name="menuSave_to">
+     <property name="title">
+      <string>Save to</string>
+     </property>
+     <addaction name="actionCSV_save"/>
+     <addaction name="actionJSON_save"/>
+    </widget>
+    <addaction name="menuWczytaj_z_CSV"/>
+    <addaction name="menuSave_to"/>
     <addaction name="actionWprowadzNagl"/>
     <addaction name="actionGenerateResultsPDF"/>
     <addaction name="menuZmie_motyw"/>
@@ -293,39 +308,49 @@ p, li { white-space: pre-wrap; }
    <addaction name="menuMenu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionWczytaj_z_CSV">
-   <property name="text">
-    <string>Wczytaj z CSV</string>
-   </property>
-  </action>
-  <action name="actionZapisz_do_CSV">
-   <property name="text">
-    <string>Zapisz do CSV</string>
-   </property>
-  </action>
   <action name="actionGenerateResultsPDF">
    <property name="text">
-    <string>Generuj PDF wyników</string>
+    <string>Generate PDF</string>
    </property>
   </action>
   <action name="actionWprowadzNagl">
    <property name="text">
-    <string>Wprowadź nagłówki ręcznie</string>
+    <string>Insert Headers</string>
    </property>
   </action>
   <action name="actionJasny">
    <property name="text">
-    <string>Jasny</string>
+    <string>Light</string>
    </property>
   </action>
   <action name="actionCiemny">
    <property name="text">
-    <string>Ciemny</string>
+    <string>Dark</string>
    </property>
   </action>
   <action name="actionWyszukaj">
    <property name="text">
-    <string>Wyszukaj</string>
+    <string>Find</string>
+   </property>
+  </action>
+  <action name="actionCSV_load">
+   <property name="text">
+    <string>CSV</string>
+   </property>
+  </action>
+  <action name="actionJSON_load">
+   <property name="text">
+    <string>JSON</string>
+   </property>
+  </action>
+  <action name="actionCSV_save">
+   <property name="text">
+    <string>CSV</string>
+   </property>
+  </action>
+  <action name="actionJSON_save">
+   <property name="text">
+    <string>JSON</string>
    </property>
   </action>
  </widget>

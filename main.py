@@ -21,6 +21,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 
+
 # przechowywanie dancyh
 df = pd.read_csv('zoo.data', header=None)
 df_with_labels = pd.DataFrame
@@ -415,6 +416,53 @@ def load_CSV_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tabl
     selection_model = tableView.selectionModel()
     selection_model.selectionChanged.connect(lambda:handle_selection_changed(tableView))
 
+import json
+
+def load_JSON_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tableView):
+    global df
+    global df_with_labels
+    current_dir = os.getcwd()
+    filename, _ = QFileDialog.getOpenFileName(None, "Wybierz plik JSON", current_dir, "Pliki JSON (*.json)")
+
+    if not filename:
+        # Wyjście z funkcji, jeśli nie został wybrany plik
+        return
+
+    # Wczytaj dane z pliku JSON do obiektu DataFrame z biblioteki Pandas
+    with open(filename, 'r') as json_file:
+        data = json.load(json_file)
+
+    df = pd.DataFrame(data)
+    df_with_labels = df.copy()
+
+    # Wyświetl dane w tabeli
+    model = QStandardItemModel(df.shape[0], df.shape[1])
+    headers = list(df.columns)
+    model.setHorizontalHeaderLabels(headers)
+
+    for row in range(df.shape[0]):
+        for column in range(df.shape[1]):
+            item = QStandardItem(str(df.iloc[row, column]))
+            model.setItem(row, column, item)
+
+    tableView.setModel(model)
+
+    # Wczytywanie nazw kolumn do comboboxów
+    column_names = df.columns.tolist()
+    comboBoxAtrybut1.clear()
+    comboBoxAtrybut2.clear()
+    comboBoxAtrybutClass.clear()
+    comboBoxAtrybut1.addItems(column_names)
+    comboBoxAtrybut2.addItems(column_names)
+    comboBoxAtrybutClass.addItems(column_names)
+
+    # Liczba kolumn
+    x = len(df.columns)
+
+    tableView.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
+    selection_model = tableView.selectionModel()
+    selection_model.selectionChanged.connect(lambda: handle_selection_changed(tableView))
+
 
 def save_to_CSV():
 
@@ -445,6 +493,62 @@ def save_to_CSV():
 
     if filename:
         df_with_labels.to_csv(filename, index=False, header=header)
+
+import json
+
+def save_to_JSON():
+    current_dir = os.getcwd()
+    filename, _ = QFileDialog.getSaveFileName(None, "Zapisz plik JSON", current_dir, "Pliki JSON (*.json)")
+
+    if filename:
+        # Zakładam, że masz DataFrame o nazwie df_with_labels, które chcesz zapisać do pliku JSON.
+        # Jeśli używasz innej zmiennej, zmień ją w odpowiednim miejscu.
+        data_to_save = df.to_dict(orient='records')
+
+        with open(filename, 'w') as json_file:
+            json.dump(data_to_save, json_file, indent=4)
+
+
+import os
+import pandas as pd
+
+
+import os
+import pandas as pd
+import xml.etree.ElementTree as ET
+
+import os
+import pandas as pd
+import xml.etree.ElementTree as ET
+
+import os
+import pandas as pd
+
+def save_to_XML():
+    current_dir = os.getcwd()
+    filename, _ = QFileDialog.getSaveFileName(None, "Zapisz plik XML", current_dir, "Pliki XML (*.xml)")
+
+    if filename:
+        # Zakładam, że masz DataFrame o nazwie df, które chcesz zapisać do pliku XML.
+        # Jeśli używasz innej zmiennej, zmień ją w odpowiednim miejscu.
+
+        # Wybierz odpowiednie opcje eksportu XML, w tym format pliku XML, itp.
+        xml_options = {
+            "root_name": "root",  # Możesz dostosować nazwę korzenia XML.
+            "row_name": "row",  # Możesz dostosować nazwę wiersza XML.
+        }
+
+        # Konwertuj DataFrame do XML za pomocą modułu lxml
+        xml_data = df.to_xml(root_name=xml_options['root_name'], row_name=xml_options['row_name'], index=False)
+
+        with open(filename, 'w', encoding='utf-8') as xml_file:
+            xml_file.write(xml_data)
+
+
+
+
+
+
 
 import pandas as pd
 from PyQt6 import QtCore

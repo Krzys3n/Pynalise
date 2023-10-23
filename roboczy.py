@@ -41,14 +41,13 @@ class DataRetrievalThread(QThread):
             self.i+=1
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
-    from PyQt6.QtCore import Qt
     print(main.df.dtypes)
     print(main.df_with_labels.dtypes)
-    from PyQt6.QtCore import Qt
+
 
     def search(self, value):
         ilosc_szuk= 0
-        #okno dialogowo:
+        # okno dialogowo:
 
         dialog = QDialog()
         dialog.setWindowTitle("Wpisz szukaną wartość: " )
@@ -69,8 +68,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         else:
             return 0
-
-
 
         # Clear current selection.
         self.tableView.clearSelection()
@@ -185,10 +182,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         # obsługa paska menu
-        self.actionWczytaj_z_CSV.triggered.connect(
+        self.actionCSV_load.triggered.connect(
             lambda: main.load_CSV_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
                                        self.tableView))
-        self.actionZapisz_do_CSV.triggered.connect(lambda: main.save_to_CSV())
+        self.actionCSV_save.triggered.connect(lambda: main.save_to_XML())
+        self.actionJSON_load.triggered.connect(
+            lambda: main.load_JSON_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
+                                       self.tableView))
+        self.actionJSON_save.triggered.connect(lambda: main.save_to_JSON())
         self.actionWprowadzNagl.triggered.connect(
             lambda: main.add_headers_manually(self.comboBoxAtrybut1, self.comboBoxAtrybut2,
                                               self.comboBoxAtrybutClass, self.tableView))
