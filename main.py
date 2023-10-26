@@ -1,5 +1,4 @@
-import os
-import sys
+
 from functools import partial
 import numpy as np
 import seaborn as sns
@@ -10,16 +9,17 @@ from PyQt6.QtWidgets import QApplication, QTableView, QFileDialog, QMessageBox, 
     QLineEdit, QHBoxLayout, QStyleFactory
 import pandas as pd
 import matplotlib.pyplot as plt
-from PyQt6.uic import loadUiType
+import json
 
 from reportlab.pdfgen import canvas
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QTextBrowser
 from PyQt6.QtGui import QEnterEvent
-from sklearn.metrics import accuracy_score
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.metrics import accuracy_score, silhouette_score, davies_bouldin_score
 from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-
+import os
 
 
 # przechowywanie dancyh
@@ -62,6 +62,42 @@ def code_data(df):
 
     df_encoded = pd.concat([dane_numeryczne, dane_binarne], axis=1)
     return df_encoded
+
+def cluster_selected_data(df):
+    # Klastrowanie ,,
+    df1 = df[['pw', 'pl', 'lw']].to_numpy()
+    kmeans = KMeans(n_clusters=3)
+    kmeans.fit(df1)
+    labels1 = kmeans.labels_
+    print(labels1)
+    silhouette_avg = silhouette_score(df1, labels1)
+    print(silhouette_avg)
+    db_index = davies_bouldin_score(df1, labels1)
+    print("Davies-Bouldin Index:", db_index)
+    # Wykres
+    plt.scatter(df['pw'], df['pl'], c=labels1, cmap='viridis')
+    plt.xlabel('pw')
+    plt.ylabel('pl')
+    plt.title('Wyniki klastrowania')
+    plt.show()
+def cluster_selected_dataX(df):
+    # Klastrowanie ,,
+    df1 = df[['pw', 'pl', 'lw']].to_numpy()
+    kmeans = KMeans(n_clusters=3)
+    kmeans.fit(df1)
+    labels1 = kmeans.labels_
+    print(labels1)
+    silhouette_avg = silhouette_score(df1, labels1)
+    print(silhouette_avg)
+    db_index = davies_bouldin_score(df1, labels1)
+    print("Davies-Bouldin Index:", db_index)
+    # Wykres
+    plt.scatter(df['pw'], df['pl'], c=labels1, cmap='viridis')
+    plt.xlabel('pw')
+    plt.ylabel('pl')
+    plt.title('Wyniki klastrowania')
+    plt.show()
+
 
 def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
     # Przygotowanie danych
@@ -416,7 +452,7 @@ def load_CSV_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tabl
     selection_model = tableView.selectionModel()
     selection_model.selectionChanged.connect(lambda:handle_selection_changed(tableView))
 
-import json
+
 
 def load_JSON_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tableView):
     global df
@@ -494,7 +530,7 @@ def save_to_CSV():
     if filename:
         df_with_labels.to_csv(filename, index=False, header=header)
 
-import json
+
 
 def save_to_JSON():
     current_dir = os.getcwd()
@@ -507,22 +543,6 @@ def save_to_JSON():
 
         with open(filename, 'w') as json_file:
             json.dump(data_to_save, json_file, indent=4)
-
-
-import os
-import pandas as pd
-
-
-import os
-import pandas as pd
-import xml.etree.ElementTree as ET
-
-import os
-import pandas as pd
-import xml.etree.ElementTree as ET
-
-import os
-import pandas as pd
 
 def save_to_XML():
     current_dir = os.getcwd()
