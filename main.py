@@ -11,11 +11,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import json
 
+from numpy import double
 from reportlab.pdfgen import canvas
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QTextBrowser
 from PyQt6.QtGui import QEnterEvent
 from sklearn.cluster import KMeans, DBSCAN
-from sklearn.metrics import accuracy_score, silhouette_score, davies_bouldin_score
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import accuracy_score, silhouette_score, davies_bouldin_score, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split, cross_val_predict
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
@@ -45,7 +47,7 @@ df.columns = list(range(x + 1))
 #
 
 # Klasyfikacja danych:
-def is_text_or_number(value):
+def is_text(value):
     try:
         float(value)  # Spróbuj przekształcić wartość na liczbę zmiennoprzecinkową
         return False  # Jeśli się udało, oznacza to, że wartość jest liczbą
@@ -80,9 +82,16 @@ def cluster_selected_data(df):
     plt.ylabel('pl')
     plt.title('Wyniki klastrowania')
     plt.show()
-def cluster_selected_dataX(df):
+def cluster_selected_dataX():
+    df_class_init = pd.DataFrame()
+
+    for column in selected_columns:
+        nazwa_kolumny = df_with_labels.columns[column]
+        df_class_init[nazwa_kolumny] = df_with_labels.iloc[:, column]
+    df1 = df_class_init.to_numpy()
+
+    print (df1)
     # Klastrowanie ,,
-    df1 = df[['pw', 'pl', 'lw']].to_numpy()
     kmeans = KMeans(n_clusters=3)
     kmeans.fit(df1)
     labels1 = kmeans.labels_
@@ -92,21 +101,22 @@ def cluster_selected_dataX(df):
     db_index = davies_bouldin_score(df1, labels1)
     print("Davies-Bouldin Index:", db_index)
     # Wykres
-    plt.scatter(df['pw'], df['pl'], c=labels1, cmap='viridis')
-    plt.xlabel('pw')
-    plt.ylabel('pl')
+    plt.scatter(df1[:, 0], df1[:, 1], c=labels1, cmap='viridis')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
     plt.title('Wyniki klastrowania')
     plt.show()
 
 
 def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
     # Przygotowanie danych
-    global delete_col
-    isTextOrNumber = is_text_or_number(PyQtComboBox.currentText())
-    if(isTextOrNumber == True):
+    delete_col = PyQtComboBox.currentText()
+    isText = is_text(PyQtComboBox.currentText())
+    print(delete_col)
+    if(isText == True):
         temp_column = df_with_labels[PyQtComboBox.currentText().strip()]
         delete_col = PyQtComboBox.currentText()
-    if(isTextOrNumber == False):
+    if(isText == False):
         temp_column = df[int(PyQtComboBox.currentText())]
         delete_col = int(PyQtComboBox.currentText())
 
@@ -117,48 +127,82 @@ def classificate_selected_data(PyQtComboBox, PyQtTextBrowser):
         for column in selected_columns:
             nazwa_kolumny = df_with_labels.columns[column]
             df_class_init[nazwa_kolumny] = df_with_labels.iloc[:, column]
-
+        print(df_class_init)
 
         for i in df_class_init.columns:
             if i == delete_col:
                 czy_ma_kolumne = True
 
         if czy_ma_kolumne:
-            if (isTextOrNumber == True):
+            if (isText == True):
                 df_class_init = df_class_init.drop(delete_col, axis=1)
             else:
                 df_class_init = df_class_init.drop(df_class_init.columns[delete_col], axis=1)
         df_class_init = code_data(df_class_init)
+        print(df_class_init.dtypes)
         predict_column = temp_column
         X_train, X_test, y_train, y_test = train_test_split(df_class_init, predict_column, test_size=0.1, random_state=42)
 
-        # Inicjalizacja klasyfikatora
-        classifier = DecisionTreeClassifier()
 
-        # Trenowanie klasyfikatora na danych treningowych
-        classifier.fit(X_train, y_train)
 
-        # Wykonanie krzyżowej walidacji
-        predicted_labels = cross_val_predict(classifier, df_class_init, predict_column, cv=5)
+#################################################
+        try:
+            # Inicjalizacja klasyfikatora
+            classifier = DecisionTreeClassifier()
 
-        # Tworzenie instancji LabelEncoder
-        label_encoder = LabelEncoder()
+            # Trenowanie klasyfikatora na danych treningowych
+            classifier.fit(X_train, y_train)
 
-        # Przekształcenie etykiet klas na liczby całkowite
-        y_test_encoded = label_encoder.fit_transform(temp_column)
-        predicted_labels_encoded = label_encoder.transform(predicted_labels)
+            # Wykonanie krzyżowej walidacji
+            predicted_labels = cross_val_predict(classifier, df_class_init, predict_column, cv=5)
 
-        # Obliczenie dokładności klasyfikacji
-        accuracy = accuracy_score(y_test_encoded, predicted_labels_encoded)
+            # Tworzenie instancji LabelEncoder
+            label_encoder = LabelEncoder()
 
-        # Utworzenie nowego DataFrame z przewidzianymi etykietami
-        X_test = df_class_init.copy()
-        X_test[f'Predicted {PyQtComboBox.currentText()}'] = predicted_labels
+            # Przekształcenie etykiet klas na liczby całkowite
+            y_test_encoded = label_encoder.fit_transform(temp_column)
+            predicted_labels_encoded = label_encoder.transform(predicted_labels)
 
-        # Wyświetlenie wyników klasyfikacji
-        PyQtTextBrowser.append(X_test.to_string())
-        # Wyświetlenie wyników klasyfikacji
-        PyQtTextBrowser.append(f"\nDokładność klasyfikacji: {accuracy}")
+            # Obliczenie dokładności klasyfikacji
+            accuracy = accuracy_score(y_test_encoded, predicted_labels_encoded)
+
+            # Utworzenie nowego DataFrame z przewidzianymi etykietami
+            X_test = df_class_init.copy()
+            X_test[f'Predicted {PyQtComboBox.currentText()}'] = predicted_labels
+
+            # Wyświetlenie wyników klasyfikacji
+            PyQtTextBrowser.append(X_test.to_string())
+            # Wyświetlenie wyników klasyfikacji
+            PyQtTextBrowser.append(f"\nDokładność klasyfikacji: {accuracy}")
+
+        except Exception as e:
+            print(str(e))
+            # W przypadku błędu, wypisz komunikat w textbrowserze
+            # Create and train a Multiple Linear Regression model
+            model = LinearRegression()
+            model.fit(X_train, y_train)
+
+            # Make predictions on the test set
+            y_pred = model.predict(X_test)
+
+            # Evaluate the model
+            mse = mean_squared_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+            PyQtTextBrowser.append("Mean Squared Error: "+ str(mse))
+            PyQtTextBrowser.append("R-squared (R2) Score: "+ str(r2))
+
+            # Plot the actual vs. predicted values
+            plt.figure(figsize=(8, 6))
+            plt.scatter(y_test, y_pred, color='blue', label='Actual vs. Predicted')
+            plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--', linewidth=2,
+                     label='Perfect Fit')
+            plt.xlabel('Actual Values')
+            plt.ylabel('Predicted Values')
+            plt.title('Actual vs. Predicted Values')
+            plt.legend()
+            plt.grid()
+            plt.show()
+
     else:
         PyQtTextBrowser.append("Błąd: Wybrany atrybut do przewidywania jest numeryczny.")
 
@@ -262,6 +306,7 @@ def calculate_coorelation(comboBoxAtrybut1, comboBoxAtrybut2,PyQtTextBrowser,tab
     # utwórz nowy obiekt DataFrame z pobranych danych
     data = pd.DataFrame(
         {comboBoxAtrybut1.currentText(): column1_data, comboBoxAtrybut2.currentText(): column2_data})
+    # data = code_data(data)
     data = data.apply(pd.to_numeric)
     correlation_matrix = data[[comboBoxAtrybut1.currentText(), comboBoxAtrybut2.currentText()]].corr()
     correlation_coefficient = correlation_matrix.iloc[0, 1]
@@ -388,6 +433,7 @@ def generate_distribution_plot(tableView): #git
 def load_CSV_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tableView):
     global df
     global df_with_labels
+    global labels
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Wczytywanie pliku CSV")
     msg_box.setText("Czy chcesz wczytać plik z nazwami kolumn?")
@@ -419,6 +465,10 @@ def load_CSV_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tabl
     # Wczytaj dane z pliku CSV do obiektu DataFrame z biblioteki Pandas
     df = pd.read_csv(filename, header=header)
     df_with_labels = df.copy()
+
+
+    labels = df.columns.tolist()
+
     # Wyświetl dane za pomocą funkcji print
 
     model = QStandardItemModel(df.shape[0], df.shape[1])
@@ -585,8 +635,8 @@ def retrieveData(tableView):
         for col in range(cols):
             index = model.index(row, col)
             value = model.data(index, QtCore.Qt.ItemDataRole.DisplayRole)
-            if(is_text_or_number(value)==False):
-                value = int(value)
+            if(is_text(value)==False):
+                value = double(value)
             row_data.append(value)
         data.append(row_data)
 
@@ -598,8 +648,9 @@ def retrieveData(tableView):
     # df = df.astype(int, errors='ignore')  # Przypisanie typu int, pomijając błędy
     # df_with_labels['column_name'] = df_with_labels['column_name'].astype(str)  # Przypisanie typu str dla konkretnej kolumny
 
-    print(df.dtypes)
-    print(df_with_labels.dtypes)
+    # print(df.dtypes)
+    # print(df_with_labels.dtypes)
+    # print(labels)
 
 
 def add_headers_manually(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tableView):

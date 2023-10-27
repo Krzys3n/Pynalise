@@ -34,15 +34,15 @@ class DataRetrievalThread(QThread):
             # Wywołanie funkcji retrieveData()
             main.retrieveData(self.tableView)
 
-            print("Wątek "+str(self.i))
+            # print("Wątek "+str(self.i))
 
             # Zaczekaj przed kolejnym wywołaniem
             self.msleep(1000)  # Czas oczekiwania w milisekundach
             self.i+=1
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
-    print(main.df.dtypes)
-    print(main.df_with_labels.dtypes)
+    # print(main.df.dtypes)
+    # print(main.df_with_labels.dtypes)
 
 
     def search(self, value):
@@ -185,7 +185,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionCSV_load.triggered.connect(
             lambda: main.load_CSV_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
                                        self.tableView))
-        self.actionCSV_save.triggered.connect(lambda: main.save_to_XML())
+        self.actionCSV_save.triggered.connect(lambda: main.cluster_selected_dataX())
         self.actionJSON_load.triggered.connect(
             lambda: main.load_JSON_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
                                        self.tableView))
