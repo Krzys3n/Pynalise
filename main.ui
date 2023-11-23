@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1205</width>
-    <height>808</height>
+    <width>1201</width>
+    <height>729</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,112 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_5">
-    <item row="0" column="0" colspan="2">
-     <widget class="QTableView" name="tableView">
-      <property name="sortingEnabled">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QTextBrowser" name="textBrowserInfo">
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::Box</enum>
-      </property>
-      <property name="html">
-       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:14pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;tw-target-text-container&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'inherit'; font-size:28px;&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'inherit'; font-size:28px;&quot;&gt;nformation window&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QTextBrowser" name="textBrowser"/>
-    </item>
-    <item row="2" column="0">
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="1" column="0">
-       <widget class="QComboBox" name="comboBoxAtrybutClass"/>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Classyfication:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="pushButtonClass">
-        <property name="text">
-         <string>Classificate</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="3" column="0">
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="1">
-       <widget class="QComboBox" name="comboBoxAtrybut2"/>
-      </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="pushButtonKoorelacja">
-        <property name="text">
-         <string>Count Coorelation</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QComboBox" name="comboBoxAtrybut1"/>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Coorelation:</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="3" column="1">
-     <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Plots:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QPushButton" name="pushButtonPorownaj">
-        <property name="text">
-         <string>Generate Count Plot</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QPushButton" name="pushButtonDystrybucja">
-        <property name="text">
-         <string>Generate Distribution Plot</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QPushButton" name="pushButtonHeatmap">
-        <property name="text">
-         <string>Generate Coorelation Plot</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
     <item row="4" column="0" colspan="2">
      <layout class="QGridLayout" name="gridLayout">
       <item row="1" column="5">
@@ -261,6 +155,180 @@ p, li { white-space: pre-wrap; }
       </item>
      </layout>
     </item>
+    <item row="0" column="0" colspan="2">
+     <widget class="QTableView" name="tableView">
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QTextBrowser" name="textBrowserInfo">
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+       </font>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="html">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:14pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;tw-target-text-container&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-family:'inherit'; font-size:28px;&quot;&gt;I&lt;/span&gt;&lt;span style=&quot; font-family:'inherit'; font-size:28px;&quot;&gt;nformation window&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QTextBrowser" name="textBrowser">
+      <property name="tabChangesFocus">
+       <bool>false</bool>
+      </property>
+      <property name="undoRedoEnabled">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="1" column="0">
+       <widget class="QComboBox" name="comboBoxAtrybutClass"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Classification:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButtonClass">
+        <property name="text">
+         <string>Classificate</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="3" column="0">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="1">
+       <widget class="QComboBox" name="comboBoxAtrybut2"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="pushButtonKoorelacja">
+        <property name="text">
+         <string>Count Coorelation</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QComboBox" name="comboBoxAtrybut1"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Correlation:</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="3" column="1">
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Plots:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="pushButtonPorownaj">
+        <property name="text">
+         <string>Generate Count Plot</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="pushButtonDystrybucja">
+        <property name="text">
+         <string>Generate Distribution Plot</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="pushButtonHeatmap">
+        <property name="text">
+         <string>Generate Coorelation Plot</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="2" column="1">
+     <layout class="QGridLayout" name="gridLayout_6">
+      <item row="1" column="1">
+       <widget class="QPushButton" name="pushButtonCluster">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Cluster</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Clusterization:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLineEdit" name="lineEditCluster">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="inputMask">
+         <string>D</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="cursorPosition">
+         <number>0</number>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="placeholderText">
+         <string>Input cluster number</string>
+        </property>
+        <property name="clearButtonEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -268,7 +336,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1205</width>
+     <width>1201</width>
      <height>21</height>
     </rect>
    </property>

@@ -24,7 +24,7 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import os
 
 
-# przechowywanie dancyh
+# przechowywanie danych
 df = pd.read_csv('zoo.data', header=None)
 df_with_labels = pd.DataFrame
 df_with_labels = df.copy()
@@ -82,9 +82,9 @@ def cluster_selected_data(df):
     plt.ylabel('pl')
     plt.title('Wyniki klastrowania')
     plt.show()
-def cluster_selected_dataX():
+def cluster_selected_dataX(PyQtTextBrowser, PyQTLineEdit):
     df_class_init = pd.DataFrame()
-
+    clusters =int( PyQTLineEdit.text())
     for column in selected_columns:
         nazwa_kolumny = df_with_labels.columns[column]
         df_class_init[nazwa_kolumny] = df_with_labels.iloc[:, column]
@@ -92,13 +92,14 @@ def cluster_selected_dataX():
 
     print (df1)
     # Klastrowanie ,,
-    kmeans = KMeans(n_clusters=3)
+    kmeans = KMeans(n_clusters=clusters)
     kmeans.fit(df1)
     labels1 = kmeans.labels_
     print(labels1)
     silhouette_avg = silhouette_score(df1, labels1)
     print(silhouette_avg)
     db_index = davies_bouldin_score(df1, labels1)
+    PyQtTextBrowser.append("Davies-Bouldin Index:" + str(db_index))
     print("Davies-Bouldin Index:", db_index)
     # Wykres
     plt.scatter(df1[:, 0], df1[:, 1], c=labels1, cmap='viridis')
@@ -329,16 +330,13 @@ def calculate_checked_stats(checkBoxMin,checkBoxMax,checkBoxStd,checkBoxMdn,chec
 
 def generate_comparison_plot(tableView): #git
     model = tableView.model()
-
     data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
 
     for column_index in selected_columns:
         # Pobierz nazwę wybranej kolumny z QTableView
         column_name = model.headerData(column_index, Qt.Orientation.Horizontal)
-
         # Pobierz dane z wybranej kolumny
         column_data = [model.data(model.index(row, column_index)) for row in range(model.rowCount())]
-
         # Dodaj dane do obiektu DataFrame
         data[column_name] = column_data
 
@@ -346,33 +344,26 @@ def generate_comparison_plot(tableView): #git
     data = data.apply(pd.to_numeric, errors='coerce')
     counts = data.apply(pd.Series.value_counts).fillna(0)
     counts.plot(kind='bar')
-
     plt.xlabel('Atrybut')
     plt.ylabel('Suma')
-
     # Skonstruuj tytuł wykresu na podstawie nazw zaznaczonych atrybutów
     title = "Zliczenia "
+
     for column_name in data.columns:
         title += str(column_name) + " + "
-
     title = title[:-3]  # Usuń ostatni znak "+" i spacje
-
     plt.title(title)
-
     plt.show()
 
 def generate_correlation_heatmap(tableView): #git
     model = tableView.model()
-
     data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
 
     for column_index in selected_columns:
         # Pobierz nazwę wybranej kolumny z QTableView
         column_name = model.headerData(column_index, Qt.Orientation.Horizontal)
-
         # Pobierz dane z wybranej kolumny
         column_data = [model.data(model.index(row, column_index)) for row in range(model.rowCount())]
-
         # Dodaj dane do obiektu DataFrame
         data[column_name] = column_data
 
@@ -392,25 +383,20 @@ def generate_correlation_heatmap(tableView): #git
 
 def generate_distribution_plot(tableView): #git
     model = tableView.model()
-
     data = pd.DataFrame()  # Utwórz pusty obiekt DataFrame
 
     for column_index in selected_columns:
         # Pobierz nazwę wybranej kolumny z QTableView
         column_name = model.headerData(column_index, Qt.Orientation.Horizontal)
-
         # Pobierz dane z wybranej kolumny
         column_data = [model.data(model.index(row, column_index)) for row in range(model.rowCount())]
-
         # Dodaj dane do obiektu DataFrame
         data[column_name] = column_data
 
     # Konwertuj dane na typ numeryczny
     data = data.apply(pd.to_numeric , errors='coerce')
-
     # Sumuj wartości dla każdej kolumny
     counts = data.sum()
-
     # Wygeneruj wykres kołowy
     plt.pie(counts.values, labels=counts.index, autopct='%1.1f%%')
     plt.axis('equal')
@@ -419,11 +405,8 @@ def generate_distribution_plot(tableView): #git
     title = "Rozkład "
     for column_name in data.columns:
         title += str(column_name) + " + "
-
     title = title[:-3]  # Usuń ostatni znak "+" i spacje
-
     plt.title(title)
-
     plt.show()
 
 
@@ -437,15 +420,12 @@ def load_CSV_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tabl
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Wczytywanie pliku CSV")
     msg_box.setText("Czy chcesz wczytać plik z nazwami kolumn?")
-
     yes_button = msg_box.addButton(QMessageBox.StandardButton.Yes)
     yes_button.setText("Tak, z nazwami")
     msg_box.addButton(QMessageBox.StandardButton.No).setText("Nie, bez nazw")
     cn_button = msg_box.addButton(QMessageBox.StandardButton.Cancel)
     cn_button.setVisible(False)
-
     msg_box.setDefaultButton(yes_button)
-
     reply = msg_box.exec()
 
     if reply == 16384:
@@ -465,8 +445,6 @@ def load_CSV_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tabl
     # Wczytaj dane z pliku CSV do obiektu DataFrame z biblioteki Pandas
     df = pd.read_csv(filename, header=header)
     df_with_labels = df.copy()
-
-
     labels = df.columns.tolist()
 
     # Wyświetl dane za pomocą funkcji print
@@ -494,15 +472,12 @@ def load_CSV_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tabl
 
     # Liczba kolumn minus 1
     x = len(df.columns) - 1
-
     # Ustawienie nazw kolumn na liczby od 0 do x
     df.columns = list(range(x + 1))
 
     tableView.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
     selection_model = tableView.selectionModel()
     selection_model.selectionChanged.connect(lambda:handle_selection_changed(tableView))
-
-
 
 def load_JSON_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tableView):
     global df
@@ -542,16 +517,12 @@ def load_JSON_file(comboBoxAtrybut1, comboBoxAtrybut2, comboBoxAtrybutClass, tab
     comboBoxAtrybut2.addItems(column_names)
     comboBoxAtrybutClass.addItems(column_names)
 
-    # Liczba kolumn
-    x = len(df.columns)
-
     tableView.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
     selection_model = tableView.selectionModel()
     selection_model.selectionChanged.connect(lambda: handle_selection_changed(tableView))
 
 
 def save_to_CSV():
-
     # Okno dialogowe z pytaniem o zapisanie z nazwami kolumn lub bez
     msg_box = QMessageBox()
     msg_box.setWindowTitle("Zapisywanie pliku CSV")
@@ -576,7 +547,6 @@ def save_to_CSV():
 
     current_dir = os.getcwd()
     filename, _ = QFileDialog.getSaveFileName(None, "Zapisz plik CSV", current_dir, "Pliki CSV (*.csv)")
-
     if filename:
         df_with_labels.to_csv(filename, index=False, header=header)
 
@@ -716,20 +686,16 @@ def generate_pdf(QtTextBrowser):
     if file_path:
         # Pobierz tekst z QTextBrowser
         text = QtTextBrowser.toPlainText()
-
         # Utwórz nowy obiekt Canvas
         c = canvas.Canvas(file_path)
-
         # Ustaw czcionkę i rozmiar tekstu
         c.setFont("Helvetica", 12)
-
         # Wypisz tekst w pliku PDF
         lines = text.split("\n")
         y = 800  # Wysokość początkowa
         for line in lines:
             c.drawString(50, y, line)
             y -= 20  # Zmniejsz wysokość dla kolejnej linii
-
         # Zamknij plik PDF
         c.save()
 
@@ -749,7 +715,8 @@ def switch_dictionary_buttons(button_name): #git
         "pushButtonPorownaj": "Generates a comparison plot of selected columns data",
         "pushButtonDystrybucja": "Generates a distribution plot of selected columns data",
         "pushButtonHeatmap": "Generates a coorelation Heatmap of selected columns data",
-        "pushButtonClass": "Provides classification of selected attribute for selected data"
+        "pushButtonClass": "Provides classification of selected attribute for selected data",
+        "pushButtonCluster": "Provides clusterization for inputted clusters for selected data"
 
     }
     return switcher.get(button_name, "No information available for the button")
@@ -812,8 +779,6 @@ def handle_selection_changed(QtTableView):
         selected_rows.add(index.row())
 
 ## Sekcja styli
-
-#
 def change_to_darkmode(window,table_view,textBrowserInfo):
     window.setStyleSheet("""
             background-color: #262626;
@@ -837,10 +802,6 @@ def change_to_darkmode(window,table_view,textBrowserInfo):
 
 def change_to_lightmode(window,table_view):
     window.setStyleSheet("")
-    # hor_header = CustomHeaderView3(QtCore.Qt.Orientation.Horizontal)
-    # ver_header = CustomHeaderView4(QtCore.Qt.Orientation.Vertical)
-    # table_view.setHorizontalHeader(hor_header)
-    # table_view.setVerticalHeader(ver_header)
     table_view.horizontalHeader().setVisible(True)
     table_view.verticalHeader().setVisible(True)
     table_view.setStyleSheet("""

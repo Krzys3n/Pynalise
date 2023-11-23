@@ -7,7 +7,7 @@ from PyQt6.QtCore import QSize, Qt, QThread, QItemSelectionModel
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QEnterEvent
 from PyQt6.QtWidgets import QTableView, QDialog, QLineEdit, QPushButton, QVBoxLayout
 
-import main
+import Functions
 
 from main_ui import Ui_MainWindow
 from LoginWidget import LoginWidget
@@ -32,7 +32,7 @@ class DataRetrievalThread(QThread):
     def run(self):
         while True:
             # Wywołanie funkcji retrieveData()
-            main.retrieveData(self.tableView)
+            Functions.retrieveData(self.tableView)
 
             # print("Wątek "+str(self.i))
 
@@ -45,7 +45,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # print(main.df_with_labels.dtypes)
 
 
-    def search(self, value):
+    def search(self):
         ilosc_szuk= 0
         # okno dialogowo:
 
@@ -104,30 +104,29 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             print("Zalogowany: Gość")
             self.menuMenu.setVisible(False)
 
-            self.actionWczytaj_z_CSV.setVisible(False)
-            self.actionZapisz_do_CSV.setVisible(False)
+
             self.actionGenerateResultsPDF.setVisible(False)
             self.actionWprowadzNagl.setVisible(False)
 
         # przyciski statystyczne: Obsługa:
-        self.pushButtonMinimum.clicked.connect(lambda: main.calculate_minimum(self.textBrowser, self.tableView))
-        # self.pushButtonMinimum.clicked.connect(lambda:self.search("1"))
-        self.pushButtonMaximum.clicked.connect(lambda: main.calculate_maximum(self.textBrowser, self.tableView))
+        self.pushButtonMinimum.clicked.connect(lambda: Functions.calculate_minimum(self.textBrowser, self.tableView))
+        self.pushButtonMaximum.clicked.connect(lambda: Functions.calculate_maximum(self.textBrowser, self.tableView))
         self.pushButtonClear.clicked.connect(lambda: self.textBrowser.clear())
-        self.pushButtonMean.clicked.connect(lambda: main.calculate_mean(self.textBrowser, self.tableView))
-        self.pushButtonStd.clicked.connect(lambda: main.calculate_std(self.textBrowser, self.tableView))
-        self.pushButtonMedian.clicked.connect(lambda: main.calculate_median(self.textBrowser, self.tableView))
-        self.pushButtonDystrybucja.clicked.connect(lambda: main.generate_distribution_plot(self.tableView))
+        self.pushButtonMean.clicked.connect(lambda: Functions.calculate_mean(self.textBrowser, self.tableView))
+        self.pushButtonStd.clicked.connect(lambda: Functions.calculate_std(self.textBrowser, self.tableView))
+        self.pushButtonMedian.clicked.connect(lambda: Functions.calculate_median(self.textBrowser, self.tableView))
+        self.pushButtonDystrybucja.clicked.connect(lambda: Functions.generate_distribution_plot(self.tableView))
         self.pushButtonKoorelacja.clicked.connect(
-            lambda: main.calculate_coorelation(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.textBrowser,
+            lambda: Functions.calculate_coorelation(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.textBrowser,
                                                self.tableView))
         self.pushButtonCalcChecked.clicked.connect(
-            lambda: main.calculate_checked_stats(self.checkBoxMin, self.checkBoxMax, self.checkBoxStd, self.checkBoxMdn,
+            lambda: Functions.calculate_checked_stats(self.checkBoxMin, self.checkBoxMax, self.checkBoxStd, self.checkBoxMdn,
                                                  self.checkBoxMean, self.textBrowser, self.tableView))
-        self.pushButtonHeatmap.clicked.connect(lambda: main.generate_correlation_heatmap(self.tableView))
+        self.pushButtonHeatmap.clicked.connect(lambda: Functions.generate_correlation_heatmap(self.tableView))
         self.pushButtonClass.clicked.connect(
-            lambda: main.classificate_selected_data(self.comboBoxAtrybutClass, self.textBrowser))
-        self.pushButtonPorownaj.clicked.connect(lambda: main.generate_comparison_plot(self.tableView))
+            lambda: Functions.classificate_selected_data(self.comboBoxAtrybutClass, self.textBrowser))
+        self.pushButtonPorownaj.clicked.connect(lambda: Functions.generate_comparison_plot(self.tableView))
+        self.pushButtonCluster.clicked.connect(lambda: Functions.cluster_selected_dataX(self.textBrowser,self.lineEditCluster))
         # wczytanie danych z pliku zoo.data i zapisanie ich do obiektu DataFrame biblioteki Pandas
         df = pd.read_csv('zoo.data', header=None)
         df_with_labels = pd.DataFrame
@@ -174,7 +173,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # wyświetlanie informacji o kolumnie w tabeli
         table_view.setMouseTracking(True)
         table_view.entered.connect(
-            partial(main.display_column_info, table_view=self.tableView, textBrowserInfo=self.textBrowserInfo))
+            partial(Functions.display_column_info, table_view=self.tableView, textBrowserInfo=self.textBrowserInfo))
 
         # Wątek odpowiadający za aktualizację danych w DF
         self.thread = DataRetrievalThread(self.tableView)
@@ -183,63 +182,66 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # obsługa paska menu
         self.actionCSV_load.triggered.connect(
-            lambda: main.load_CSV_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
+            lambda: Functions.load_CSV_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
                                        self.tableView))
-        self.actionCSV_save.triggered.connect(lambda: main.cluster_selected_dataX())
+        self.actionCSV_save.triggered.connect( lambda:Functions.save_to_CSV())
         self.actionJSON_load.triggered.connect(
-            lambda: main.load_JSON_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
+            lambda: Functions.load_JSON_file(self.comboBoxAtrybut1, self.comboBoxAtrybut2, self.comboBoxAtrybutClass,
                                        self.tableView))
-        self.actionJSON_save.triggered.connect(lambda: main.save_to_JSON())
+        self.actionJSON_save.triggered.connect(lambda: Functions.save_to_JSON())
         self.actionWprowadzNagl.triggered.connect(
-            lambda: main.add_headers_manually(self.comboBoxAtrybut1, self.comboBoxAtrybut2,
+            lambda: Functions.add_headers_manually(self.comboBoxAtrybut1, self.comboBoxAtrybut2,
                                               self.comboBoxAtrybutClass, self.tableView))
-        self.actionGenerateResultsPDF.triggered.connect(lambda: main.generate_pdf(self.textBrowser))
-        self.actionCiemny.triggered.connect(lambda: main.change_to_darkmode(self, self.tableView, self.textBrowserInfo))
-        self.actionJasny.triggered.connect(lambda: main.change_to_lightmode(self, self.tableView))
-        self.actionWyszukaj.triggered.connect(lambda: self.search('1'))
+        self.actionGenerateResultsPDF.triggered.connect(lambda: Functions.generate_pdf(self.textBrowser))
+        self.actionCiemny.triggered.connect(lambda: Functions.change_to_darkmode(self, self.tableView, self.textBrowserInfo))
+        self.actionJasny.triggered.connect(lambda: Functions.change_to_lightmode(self, self.tableView))
+        self.actionWyszukaj.triggered.connect(lambda: self.search())
 
         # Obsługa wyświetlania informacji o przyciskach:
-        self.pushButtonMinimum.enterEvent = partial(main.on_button_enter,
+        self.pushButtonMinimum.enterEvent = partial(Functions.on_button_enter,
                                                     button_name=str(self.pushButtonMinimum.objectName()),
                                                     QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonMaximum.enterEvent = partial(main.on_button_enter,
+        self.pushButtonMaximum.enterEvent = partial(Functions.on_button_enter,
                                                     button_name=str(self.pushButtonMaximum.objectName()),
                                                     QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonStd.enterEvent = partial(main.on_button_enter,
+        self.pushButtonStd.enterEvent = partial(Functions.on_button_enter,
                                                 button_name=str(self.pushButtonStd.objectName()),
                                                 QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonMedian.enterEvent = partial(main.on_button_enter,
+        self.pushButtonMedian.enterEvent = partial(Functions.on_button_enter,
                                                    button_name=str(self.pushButtonMedian.objectName()),
                                                    QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonMean.enterEvent = partial(main.on_button_enter,
+        self.pushButtonMean.enterEvent = partial(Functions.on_button_enter,
                                                  button_name=str(self.pushButtonMean.objectName()),
                                                  QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonClear.enterEvent = partial(main.on_button_enter,
+        self.pushButtonClear.enterEvent = partial(Functions.on_button_enter,
                                                   button_name=str(self.pushButtonClear.objectName()),
                                                   QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonCalcChecked.enterEvent = partial(main.on_button_enter,
+        self.pushButtonCalcChecked.enterEvent = partial(Functions.on_button_enter,
                                                         button_name=str(self.pushButtonCalcChecked.objectName()),
                                                         QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonKoorelacja.enterEvent = partial(main.on_button_enter,
+        self.pushButtonKoorelacja.enterEvent = partial(Functions.on_button_enter,
                                                        button_name=str(self.pushButtonKoorelacja.objectName()),
                                                        QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonPorownaj.enterEvent = partial(main.on_button_enter,
+        self.pushButtonPorownaj.enterEvent = partial(Functions.on_button_enter,
                                                      button_name=str(self.pushButtonPorownaj.objectName()),
                                                      QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonDystrybucja.enterEvent = partial(main.on_button_enter,
+        self.pushButtonDystrybucja.enterEvent = partial(Functions.on_button_enter,
                                                         button_name=str(self.pushButtonDystrybucja.objectName()),
                                                         QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonHeatmap.enterEvent = partial(main.on_button_enter,
+        self.pushButtonHeatmap.enterEvent = partial(Functions.on_button_enter,
                                                     button_name=str(self.pushButtonHeatmap.objectName()),
                                                     QtTextBrowser=self.textBrowserInfo)
-        self.pushButtonClass.enterEvent = partial(main.on_button_enter,
+        self.pushButtonClass.enterEvent = partial(Functions.on_button_enter,
                                                   button_name=str(self.pushButtonClass.objectName()),
+                                                  QtTextBrowser=self.textBrowserInfo)
+        self.pushButtonCluster.enterEvent = partial(Functions.on_button_enter,
+                                                  button_name=str(self.pushButtonCluster.objectName()),
                                                   QtTextBrowser=self.textBrowserInfo)
 
         # Wyświetlanie informacji na temat przycisków - pobieranie danych na temat zaznaczonych kolumn/wierszy/indeksów:
         table_view.setSelectionMode(QTableView.SelectionMode.ExtendedSelection)
         self.selection_model = table_view.selectionModel()
-        self.selection_model.selectionChanged.connect(lambda: main.handle_selection_changed(table_view))
+        self.selection_model.selectionChanged.connect(lambda: Functions.handle_selection_changed(table_view))
 
 
 class LoginWidget(QtWidgets.QWidget, LoginWidget):
@@ -293,9 +295,7 @@ class SignUpWidget(QtWidgets.QWidget, SignUpWidget):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-
     sign_up_window = SignUpWidget()
     login_window = LoginWidget(sign_up_window)
     login_window.show()
-
     sys.exit(app.exec())
