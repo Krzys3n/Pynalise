@@ -23,9 +23,10 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import os
 
+import Animals
 
 # przechowywanie danych
-df = pd.read_csv('zoo.data', header=None)
+df = pd.DataFrame(Animals.animals)
 df_with_labels = pd.DataFrame
 df_with_labels = df.copy()
 selected_indexes = set()
