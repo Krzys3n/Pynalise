@@ -1,9 +1,9 @@
-# Zoo_Proj_Inf_Py
+# Pynalise
 ## Temat projektu
-Tematem projektu jest stworzenie aplikacji przetwarzającej dane dotyczące zwierząt w Zoo w Nothingam.
+Tematem projektu jest stworzenie aplikacji przetwarzającej dowlne dane oraz pokazujującej dostępny analizy na przykładowych danych dotyczących zwierząt w Zoo w Nothingam.
 
 ## Cel projektu
-Głównym celem projektu jest zaprojektowanie i wykonanie oprogramowania, które pozwoli na przetwarzanie i analizowanie danych dotyczących zwierząt w Zoo w Nothingam. Aplikacja powinna umożliwiać wyświetlanie informacji na temat zwierząt, ich charakterystyk oraz analizę zebranych danych.
+Głównym celem projektu jest zaprojektowanie i wykonanie oprogramowania, które pozwoli na przetwarzanie i analizowanie danych. Aplikacja powinna umożliwiać wyświetlanie informacji na temat danych, oraz ich analizę, wyniki obliczeń powinny być możliwe do wyeksportowania do pliku wyjściowego.
 
 ## Funkcjonalności aplikacji
 Wczytywanie danych z pliku
